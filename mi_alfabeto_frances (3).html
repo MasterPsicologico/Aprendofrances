@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi alfabeto francés</title>
+<style>
+:root{--ink:#17243b;--muted:#65738b;--blue:#2457c5;--pale:#edf3ff;--line:#dce5f2;--bg:#f6f8fc;--green:#13795b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:linear-gradient(130deg,#183d91,#3979dc);color:white;padding:28px 18px 32px}
+.wrap{max-width:1050px;margin:auto}h1{margin:0 0 8px;font-size:clamp(26px,5vw,38px)}header p{margin:0;opacity:.92;line-height:1.5}
+main{padding:22px 16px 40px}.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:18px;box-shadow:0 5px 18px #24395d0a}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.controls label{font-size:14px;font-weight:650}.controls select,.controls input{margin-left:6px}
+select{max-width:100%;padding:9px;border:1px solid var(--line);border-radius:9px;background:white;color:var(--ink)}
+button{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer;background:var(--blue);color:white}
+button.secondary{background:var(--pale);color:var(--blue)}button.stop{background:#fff0f0;color:#a52d35}
+button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offset:3px}
+.status{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:11px}
+.tile{background:white;border:1px solid var(--line);border-radius:15px;padding:14px 10px;text-align:center;cursor:pointer;transition:.15s;min-height:144px;color:var(--ink)}
+.tile:hover{border-color:#8eadee;transform:translateY(-2px);box-shadow:0 7px 18px #244b9515}
+.tile .letter{font-size:36px;font-weight:800;color:var(--blue);line-height:1.1}
+.tile .french{font-size:18px;font-weight:750;margin:7px 0 3px}
+.tile .sound{font-size:13px;color:var(--green)}
+.tile .tap{font-size:11px;color:var(--muted);margin-top:8px}
+.tile.special{background:#fffaf0;border-color:#f1d99d}.tile.special .letter{color:#9a6500}
+.detail{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.big{font-size:52px;font-weight:850;color:var(--blue);min-width:65px}
+.detail h2{margin:0 0 4px;font-size:21px}.detail p{margin:3px 0;color:var(--muted)}
+.note{font-size:14px;line-height:1.55;color:var(--muted)}
+@media(max-width:480px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{min-height:135px}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>🇫🇷 Mi alfabeto francés</h1>
+<p>Selecciona una letra para escuchar su nombre en francés. Aprende también cómo se escribe y una aproximación de su sonido para hispanohablantes.</p>
+</div></header>
+<main class="wrap">
+<section class="panel">
+ <div class="controls">
+  <label for="voice">Voz francesa:</label><select id="voice"><option value="">Detectar voz francesa automáticamente</option></select>
+  <label for="rate">Velocidad: <span id="rateVal">0.8×</span></label><input id="rate" type="range" min="0.55" max="1.15" step="0.05" value="0.8">
+  <button id="playAll">▶ Escuchar alfabeto</button><button id="stop" class="stop">■ Detener</button>
+ </div>
+ <div id="status" class="status" aria-live="polite">Preparando las voces disponibles… Para escuchar correctamente, permite el audio del navegador y selecciona una voz que indique francés (fr-FR o fr-CA).</div>
+</section>
+<section class="panel detail" aria-live="polite">
+ <div class="big" id="selectedLetter">A</div>
+ <div style="flex:1;min-width:180px">
+  <h2 id="selectedName">A — a</h2>
+  <p id="selectedSound">Aproximación: «a»</p>
+  <p id="selectedInfo">Pulsa una letra para escucharla.</p>
+ </div>
+ <button id="playSelected">🔊 Escuchar letra</button>
+</section>
+<section class="grid" id="alphabet" aria-label="Letras del alfabeto español"></section>
+<section class="panel note">
+ <strong>Una nota importante:</strong> el alfabeto francés tiene 26 letras. La Ñ pertenece al alfabeto español y no tiene una letra equivalente propia en francés. En esa tarjeta puedes escuchar una explicación en francés.
+ <br><br>
+ <strong>Sobre el audio:</strong> la aplicación utiliza la voz francesa instalada en tu navegador o dispositivo mediante la función de lectura de texto. La calidad y naturalidad dependen de la voz disponible; no todos los dispositivos incluyen una voz francesa de alta calidad. Si no aparece ninguna, instala o activa una voz francesa en los ajustes de texto a voz del dispositivo.
+</section>
+</main>
+<script>
+const letters = [
+ ['A','a','a','Sonido parecido a la «a» española.'],
+ ['B','bé','be','Se pronuncia con una «e» cerrada al final.'],
+ ['C','cé','se','La letra se llama «cé», con sonido inicial de s.'],
+ ['D','dé','de','La «e» final es cerrada.'],
+ ['E','e','ə','Vocal neutra francesa; no es exactamente la «e» española.'],
+ ['F','effe','ef','Termina con una «f» claramente audible.'],
+ ['G','gé','ʒe','Empieza con el sonido «zh», como la j francesa.'],
+ ['H','hache','ash','La h se pronuncia como «ash».'],
+ ['I','i','i','Como la «i» española.'],
+ ['J','ji','ʒi','Empieza con el sonido «zh», no con la jota española.'],
+ ['K','ka','ka','Muy parecido a «ka» en español.'],
+ ['L','elle','el','La consonante final se oye.'],
+ ['M','emme','em','La «m» se pronuncia al final.'],
+ ['N','enne','en','La «n» se pronuncia al final.'],
+ ['Ñ','la lettre eñe n’existe pas dans l’alphabet français','eñe (explicación)','La Ñ no forma parte del alfabeto francés.'],
+ ['O','o','o','Como la «o» española, más bien cerrada.'],
+ ['P','pé','pe','La «e» final es cerrada.'],
+ ['Q','ku','ky','La vocal «u» francesa no existe igual en español: redondea los labios diciendo «i».'],
+ ['R','erre','ɛʁ','R francesa, producida en la parte posterior de la boca.'],
+ ['S','esse','es','La «s» final se pronuncia.'],
+ ['T','té','te','La «e» final es cerrada.'],
+ ['U','u','y','Redondea los labios como para «u», pero intenta decir «i».'],
+ ['V','vé','ve','La «e» final es cerrada.'],
+ ['W','double vé','dubləve','Se llama «doble ve».'],
+ ['X','ix','iks','Similar a «iks».'],
+ ['Y','i grec','igʁɛk','Significa literalmente «i griega».'],
+ ['Z','zède','zɛd','La consonante inicial suena como z sonora francesa.']
+];
+const $=id=>document.getElementById(id);
+let voices=[], chosen=null, queueToken=0;
+function loadVoices(){
+ voices=speechSynthesis.getVoices();
+ const select=$('voice'); const previous=select.value;
+ select.innerHTML='<option value="">Detectar voz francesa automáticamente</option>';
+ const french=voices.filter(v=>/^fr([-_]|$)/i.test(v.lang));
+ french.forEach((v,i)=>{const o=document.createElement('option');o.value=String(voices.indexOf(v));o.textContent=`${v.name} (${v.lang})${v.default?' — predeterminada':''}`;select.appendChild(o)});
+ if(previous && [...select.options].some(o=>o.value===previous))select.value=previous;
+ $('status').textContent=french.length
+ ? `Se encontraron ${french.length} voz/ voces en francés. Puedes elegir francés de Francia (fr-FR) o de Canadá (fr-CA).`
+ : 'No se detectó una voz francesa instalada. El audio puede usar una voz no adecuada hasta que actives o instales una voz fr-FR o fr-CA en tu dispositivo.';
+}
+function getVoice(){
+ if($('voice').value!=='')return voices[Number($('voice').value)]||null;
+ return voices.find(v=>/^fr-FR$/i.test(v.lang))||voices.find(v=>/^fr-CA$/i.test(v.lang))||voices.find(v=>/^fr/i.test(v.lang))||null;
+}
+function speak(text){
+ if(!('speechSynthesis' in window)){ $('status').textContent='Este navegador no admite lectura de voz. Prueba con Chrome o Edge actualizado.';return}
+ speechSynthesis.cancel();
+ const utter=new SpeechSynthesisUtterance(text);
+ const voice=getVoice(); if(voice){utter.voice=voice;utter.lang=voice.lang}else{utter.lang='fr-FR'}
+ utter.rate=Number($('rate').value);utter.pitch=1;
+ utter.onstart=()=>{$('status').textContent=`Reproduciendo con ${voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo'}.`};
+ utter.onerror=e=>{$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.'};
+ speechSynthesis.speak(utter);
+}
+function selectLetter(item){
+ $('selectedLetter').textContent=item[0];
+ $('selectedName').textContent=item[0]==='Ñ'?'Ñ — explicación en francés':`${item[0]} — ${item[1]}`;
+ $('selectedSound').textContent='Aproximación: «'+item[2]+'»';
+ $('selectedInfo').textContent=item[3];
+ $('playSelected').onclick=()=>speak(item[1]);
+}
+function render(){
+ const grid=$('alphabet');grid.innerHTML='';
+ letters.forEach(item=>{
+  const b=document.createElement('button');b.type='button';b.className='tile'+(item[0]==='Ñ'?' special':'');
+  b.setAttribute('aria-label',`Letra ${item[0]}. Nombre francés: ${item[1]}. Pulsar para escuchar.`);
+  b.innerHTML=`<div class="letter">${item[0]}</div><div class="french">${item[0]==='Ñ'?'Ñ (excepción)':item[1]}</div><div class="sound">${item[2]}</div><div class="tap">🔊 Toca para escuchar</div>`;
+  b.addEventListener('click',()=>{selectLetter(item);speak(item[1])});grid.appendChild(b);
+ });
+ selectLetter(letters[0]);
+}
+$('rate').addEventListener('input',()=>{$('rateVal').textContent=Number($('rate').value).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'×'});
+$('voice').addEventListener('change',()=>{const v=getVoice();$('status').textContent=v?`Voz seleccionada: ${v.name} (${v.lang}).`:'Se utilizará la mejor voz francesa detectada automáticamente.'});
+$('stop').addEventListener('click',()=>{queueToken++;speechSynthesis.cancel();$('status').textContent='Audio detenido.'});
+$('playAll').addEventListener('click',async()=>{
+ if(!('speechSynthesis'in window))return;
+ speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
+ $('status').textContent='Reproduciendo el alfabeto francés…';
+ for(const item of letters.filter(x=>x[0]!=='Ñ')){
+  if(token!==queueToken)return;
+  await new Promise(resolve=>{
+   const u=new SpeechSynthesisUtterance(item[1]);if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';u.rate=rate;
+   u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u);
+  });
+ }
+ if(token===queueToken)$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.';
+});
+render();loadVoices();
+if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=loadVoices;
+</script>
+</body>
+</html>
