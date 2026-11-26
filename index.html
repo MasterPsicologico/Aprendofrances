@@ -58,6 +58,10 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
   <option value="introductions">Módulo 3 — Presentarse</option>
   <option value="pronouns">Módulo 4 — Pronombres personales</option>
   <option value="verbs">Módulo 5 — Verbos esenciales: être y avoir</option>
+  <option value="numbers">Módulo 6 — Los números</option>
+  <option value="age">Módulo 7 — La edad y los años</option>
+  <option value="countries">Módulo 8 — Países y nacionalidades</option>
+  <option value="questions">Módulo 9 — Preguntas básicas</option>
  </select>
 </section>
 <section class="panel">
@@ -131,6 +135,32 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <h3>Verbo avoir — tener</h3><section class="vocab-grid" id="avoirGrid"></section>
  <section class="panel note"><strong>Ejemplos:</strong><p>Je suis Oscar. — Soy Óscar.</p><p>Tu es ici. — Tú estás aquí.</p><p>J’ai un livre. — Tengo un libro.</p><p>Nous avons une maison. — Tenemos una casa.</p><button class="secondary" id="playVerbExamples">🔊 Escuchar ejemplos</button></section>
 </div>
+
+<div id="moduleNumbers" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 6: Los números</h2><p class="module-description">Aprende a contar desde cero, reconocer los números y decir cantidades sencillas.</p></section>
+ <section class="panel detail"><div class="big">🔢</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Del 0 al 20 y las decenas</h2><p>Escucha cada número en francés y repítelo. Después practica las decenas hasta cien.</p></div><button id="playNumbers">▶ Escuchar la clase</button></section>
+ <section class="vocab-grid" id="numbersGrid"></section>
+ <section class="panel note"><strong>Observa:</strong><p>17 = dix-sept; 18 = dix-huit; 19 = dix-neuf.</p><p>En francés de Francia, 70 se forma como «soixante-dix» (60 + 10), 80 como «quatre-vingts» (4 × 20) y 90 como «quatre-vingt-dix» (4 × 20 + 10).</p><button class="secondary" id="playNumberExamples">🔊 Escuchar ejemplos</button></section>
+</div>
+<div id="moduleAge" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 7: La edad y los años</h2><p class="module-description">Aprende a preguntar y decir cuántos años tienes. En francés se utiliza el verbo avoir (tener), no être (ser/estar).</p></section>
+ <section class="panel detail"><div class="big">🎂</div><div style="flex:1;min-width:180px"><h2>Clase 1 — ¿Cuántos años tienes?</h2><p>Practica la pregunta formal e informal y distintas respuestas.</p></div><button id="playAge">▶ Escuchar la clase</button></section>
+ <section class="vocab-grid" id="ageGrid"></section>
+ <section class="panel note"><strong>Modelo para practicar:</strong><p>— Quel âge as-tu ? — ¿Cuántos años tienes?</p><p>— J’ai trente-cinq ans. — Tengo treinta y cinco años.</p><p>Recuerda: «J’ai … ans», literalmente «tengo … años».</p><button class="secondary" id="playAgeDialogue">🔊 Escuchar diálogo</button></section>
+</div>
+<div id="moduleCountries" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 8: Países y nacionalidades</h2><p class="module-description">Aprende a nombrar países, decir de dónde eres y expresar tu nacionalidad.</p></section>
+ <section class="panel detail"><div class="big">🌍</div><div style="flex:1;min-width:180px"><h2>Clase 1 — ¿De dónde eres?</h2><p>Observa que algunas nacionalidades cambian según el género de la persona.</p></div><button id="playCountries">▶ Escuchar la clase</button></section>
+ <section class="vocab-grid" id="countriesGrid"></section>
+ <section class="panel note"><strong>Frases útiles:</strong><p>Je viens de Colombie. — Vengo de Colombia.</p><p>Je suis colombien. — Soy colombiano.</p><p>J’habite en Colombie. — Vivo en Colombia.</p><button class="secondary" id="playCountryExamples">🔊 Escuchar ejemplos</button></section>
+</div>
+<div id="moduleQuestions" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 9: Preguntas básicas</h2><p class="module-description">Aprende preguntas esenciales para comprender y mantener una conversación sencilla.</p></section>
+ <section class="panel detail"><div class="big">❓</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Preguntar y comprender</h2><p>Escucha las preguntas completas y familiarízate con su entonación.</p></div><button id="playQuestions">▶ Escuchar la clase</button></section>
+ <section class="vocab-grid" id="questionsGrid"></section>
+ <section class="panel note"><strong>Consejo:</strong> «Est-ce que…» permite formar muchas preguntas. Por ejemplo: «Est-ce que tu parles français ?» — ¿Hablas francés?</section>
+</div>
+
 </main>
 <script>
 const letters = [
@@ -300,6 +330,50 @@ function speakSequence(items,statusText,doneText){
  next();
 }
 
+
+const numbers = [
+ ['zéro','Cero'],['un','Uno'],['deux','Dos'],['trois','Tres'],['quatre','Cuatro'],['cinq','Cinco'],['six','Seis'],['sept','Siete'],['huit','Ocho'],['neuf','Nueve'],['dix','Diez'],['onze','Once'],['douze','Doce'],['treize','Trece'],['quatorze','Catorce'],['quinze','Quince'],['seize','Dieciséis'],['dix-sept','Diecisiete'],['dix-huit','Dieciocho'],['dix-neuf','Diecinueve'],['vingt','Veinte'],['trente','Treinta'],['quarante','Cuarenta'],['cinquante','Cincuenta'],['soixante','Sesenta'],['soixante-dix','Setenta'],['quatre-vingts','Ochenta'],['quatre-vingt-dix','Noventa'],['cent','Cien']
+].map(([fr,es])=>({fr,es,pron:'Escucha el audio para practicar la pronunciación.',note:'Número en francés.'}));
+const agePhrases = [
+ {fr:'Quel âge as-tu ?',es:'¿Cuántos años tienes? (informal)',pron:'kel aʒ a tü',note:'Pregunta dirigida a una persona con la que tienes confianza.'},
+ {fr:'Quel âge avez-vous ?',es:'¿Cuántos años tiene usted?',pron:'kel aʒ a-vé vu',note:'Forma formal o para dirigirse a varias personas.'},
+ {fr:'J’ai trente-cinq ans.',es:'Tengo treinta y cinco años.',pron:'ʒe trant-sank an',note:'Cambia trente-cinq por tu edad.'},
+ {fr:'J’ai onze ans.',es:'Tengo once años.',pron:'ʒe onz an',note:'Ejemplo de respuesta con otra edad.'},
+ {fr:'Il a vingt ans.',es:'Él tiene veinte años.',pron:'il a van an',note:'Para hablar de la edad de un hombre o un niño.'},
+ {fr:'Elle a vingt ans.',es:'Ella tiene veinte años.',pron:'el a van an',note:'Para hablar de la edad de una mujer o una niña.'},
+ {fr:'J’ai quel âge ?',es:'¿Qué edad tengo?',pron:'ʒe kel aʒ',note:'Pregunta sobre la propia edad.'},
+ {fr:'Je suis adulte.',es:'Soy adulto.',pron:'ʒə süi a-dült',note:'Una forma sencilla de decir que eres adulto.'}
+];
+const countries = [
+ {fr:'la Colombie',es:'Colombia',pron:'la ko-lom-bí',note:'País: la Colombie. Soy colombiano: Je suis colombien.'},
+ {fr:'la France',es:'Francia',pron:'la frans',note:'País: la France. Francés: français; francesa: française.'},
+ {fr:'le Canada',es:'Canadá',pron:'lə ka-na-da',note:'País: le Canada. Canadiense: canadien / canadienne.'},
+ {fr:'l’Espagne',es:'España',pron:'les-pa-ñ',note:'País: l’Espagne. Español: espagnol / espagnole.'},
+ {fr:'le Mexique',es:'México',pron:'lə mek-sik',note:'País: le Mexique. Mexicano: mexicain / mexicaine.'},
+ {fr:'les États-Unis',es:'Estados Unidos',pron:'lez e-ta-zü-ni',note:'País en plural: les États-Unis. Estadounidense: américain / américaine.'},
+ {fr:'le Venezuela',es:'Venezuela',pron:'lə ve-né-zü-é-la',note:'País: le Venezuela. Venezolano: vénézuélien / vénézuélienne.'},
+ {fr:'l’Argentine',es:'Argentina',pron:'lar-ʒan-tin',note:'País: l’Argentine. Argentino: argentin / argentine.'},
+ {fr:'colombien / colombienne',es:'colombiano / colombiana',pron:'ko-lom-byan / ko-lom-byen',note:'La forma cambia según el género.'},
+ {fr:'français / française',es:'francés / francesa',pron:'fran-sé / fran-séz',note:'La forma femenina añade una terminación escrita y cambia el sonido.'},
+ {fr:'canadien / canadienne',es:'canadiense',pron:'ka-na-dyan / ka-na-dyen',note:'Masculino y femenino.'},
+ {fr:'espagnol / espagnole',es:'español / española',pron:'es-pa-ñol / es-pa-ñol',note:'Masculino y femenino.'},
+ {fr:'mexicain / mexicaine',es:'mexicano / mexicana',pron:'mek-si-kan / mek-si-ken',note:'Masculino y femenino.'}
+];
+const questions = [
+ {fr:'Comment ça va ?',es:'¿Cómo estás?',pron:'ko-man sa va',note:'Pregunta cotidiana e informal.'},
+ {fr:'Comment allez-vous ?',es:'¿Cómo está usted?',pron:'ko-man ta-lé vu',note:'Forma formal o plural.'},
+ {fr:'Où habites-tu ?',es:'¿Dónde vives?',pron:'u a-bit tü',note:'Pregunta informal.'},
+ {fr:'Qu’est-ce que c’est ?',es:'¿Qué es esto?',pron:'kes-kə se',note:'Pregunta para identificar algo.'},
+ {fr:'Qui est-ce ?',es:'¿Quién es?',pron:'ki es',note:'Pregunta por una persona.'},
+ {fr:'Quand ?',es:'¿Cuándo?',pron:'kan',note:'Para preguntar por el momento.'},
+ {fr:'Où ?',es:'¿Dónde?',pron:'u',note:'Para preguntar por un lugar.'},
+ {fr:'Pourquoi ?',es:'¿Por qué?',pron:'pur-kuá',note:'Para preguntar por una razón.'},
+ {fr:'Combien ?',es:'¿Cuánto? / ¿Cuántos?',pron:'kom-byan',note:'Para preguntar por cantidad o precio.'},
+ {fr:'Est-ce que tu parles français ?',es:'¿Hablas francés?',pron:'es-kə tü parl fran-sé',note:'Pregunta informal que comienza con «Est-ce que».'},
+ {fr:'Pouvez-vous répéter, s’il vous plaît ?',es:'¿Puede repetir, por favor?',pron:'pu-vé vu ré-pé-té sil vu plé',note:'Frase muy útil cuando no entiendes.'},
+ {fr:'Parlez-vous espagnol ?',es:'¿Habla usted español?',pron:'par-lé vu es-pa-ñol',note:'Pregunta formal.'}
+];
+
 const greetings = [
  {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr',note:'Saludo habitual durante el día.'},
  {fr:'Salut',es:'Hola / Chao (informal)',pron:'sa-lü',note:'Se utiliza con amigos, familiares o personas de confianza.'},
@@ -331,10 +405,10 @@ function renderGreetings(){
 }
 function applySelectedModule(){
  const key=$('modulePicker').value;
- const ids={alphabet:'moduleAlphabet',greetings:'moduleGreetings',introductions:'moduleIntroductions',pronouns:'modulePronouns',verbs:'moduleVerbs'};
+ const ids={alphabet:'moduleAlphabet',greetings:'moduleGreetings',introductions:'moduleIntroductions',pronouns:'modulePronouns',verbs:'moduleVerbs',numbers:'moduleNumbers',age:'moduleAge',countries:'moduleCountries',questions:'moduleQuestions'};
  Object.entries(ids).forEach(([name,id])=>$(id).hidden=name!==key);
- const labels={alphabet:'Módulo 1: alfabeto francés.',greetings:'Módulo 2: saludos y despedidas.',introductions:'Módulo 3: presentarse.',pronouns:'Módulo 4: pronombres personales.',verbs:'Módulo 5: verbos esenciales être y avoir.'};
- const playLabels={alphabet:'▶ Escuchar alfabeto',greetings:'▶ Escuchar saludos',introductions:'▶ Escuchar presentaciones',pronouns:'▶ Escuchar pronombres',verbs:'▶ Escuchar verbos'};
+ const labels={alphabet:'Módulo 1: alfabeto francés.',greetings:'Módulo 2: saludos y despedidas.',introductions:'Módulo 3: presentarse.',pronouns:'Módulo 4: pronombres personales.',verbs:'Módulo 5: verbos esenciales être y avoir.',numbers:'Módulo 6: los números.',age:'Módulo 7: la edad y los años.',countries:'Módulo 8: países y nacionalidades.',questions:'Módulo 9: preguntas básicas.'};
+ const playLabels={alphabet:'▶ Escuchar alfabeto',greetings:'▶ Escuchar saludos',introductions:'▶ Escuchar presentaciones',pronouns:'▶ Escuchar pronombres',verbs:'▶ Escuchar verbos',numbers:'▶ Escuchar números',age:'▶ Escuchar edades',countries:'▶ Escuchar países',questions:'▶ Escuchar preguntas'};
  $('playAll').textContent=playLabels[key]||'▶ Escuchar módulo';
  queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
  $('status').textContent=labels[key]||'Módulo seleccionado.';
@@ -358,6 +432,17 @@ renderCards(introductions,'introductionsGrid');
 renderCards(pronouns,'pronounsGrid');
 renderCards(etre,'etreGrid');
 renderCards(avoir,'avoirGrid');
+renderCards(numbers,'numbersGrid');
+renderCards(agePhrases,'ageGrid');
+renderCards(countries,'countriesGrid');
+renderCards(questions,'questionsGrid');
+$('playNumbers').addEventListener('click',()=>speakSequence(numbers.map(x=>x.fr),'Reproduciendo los números…','Clase de números terminada.'));
+$('playAge').addEventListener('click',()=>speakSequence(agePhrases.map(x=>x.fr),'Reproduciendo las frases sobre la edad…','Clase sobre la edad terminada.'));
+$('playCountries').addEventListener('click',()=>speakSequence(countries.map(x=>x.fr),'Reproduciendo países y nacionalidades…','Clase de países terminada.'));
+$('playQuestions').addEventListener('click',()=>speakSequence(questions.map(x=>x.fr),'Reproduciendo preguntas básicas…','Clase de preguntas terminada.'));
+$('playNumberExamples').addEventListener('click',()=>speakSequence(['dix-sept','dix-huit','dix-neuf','soixante-dix','quatre-vingts','quatre-vingt-dix'],'Escuchando números especiales…','Ejemplos terminados.'));
+$('playAgeDialogue').addEventListener('click',()=>speakSequence(['Quel âge as-tu ?','J’ai trente-cinq ans.'],'Reproduciendo el diálogo sobre la edad…','Diálogo terminado.'));
+$('playCountryExamples').addEventListener('click',()=>speakSequence(['Je viens de Colombie.','Je suis colombien.','J’habite en Colombie.'],'Reproduciendo ejemplos de nacionalidad…','Ejemplos terminados.'));
 $('playIntroductions').addEventListener('click',()=>speakSequence(introductions.map(x=>x.fr),'Reproduciendo la clase de presentaciones…','Clase de presentaciones terminada.'));
 $('playPronouns').addEventListener('click',()=>speakSequence(pronouns.map(x=>x.fr),'Reproduciendo los pronombres…','Clase de pronombres terminada.'));
 $('playVerbs').addEventListener('click',()=>speakSequence([...etre,...avoir].map(x=>x.fr),'Reproduciendo être y avoir…','Clase de verbos terminada.'));
@@ -366,8 +451,8 @@ $('playVerbExamples').addEventListener('click',()=>speakSequence(["Je suis Oscar
 $('playAll').addEventListener('click',()=>{
  const key=$('modulePicker').value;
  if(key==='alphabet')return;
- const groups={greetings:greetings.map(x=>x.fr),introductions:introductions.map(x=>x.fr),pronouns:pronouns.map(x=>x.fr),verbs:[...etre,...avoir].map(x=>x.fr)};
- const names={greetings:'saludos',introductions:'presentaciones',pronouns:'pronombres',verbs:'verbos être y avoir'};
+ const groups={greetings:greetings.map(x=>x.fr),introductions:introductions.map(x=>x.fr),pronouns:pronouns.map(x=>x.fr),verbs:[...etre,...avoir].map(x=>x.fr),numbers:numbers.map(x=>x.fr),age:agePhrases.map(x=>x.fr),countries:countries.map(x=>x.fr),questions:questions.map(x=>x.fr)};
+ const names={greetings:'saludos',introductions:'presentaciones',pronouns:'pronombres',verbs:'verbos être y avoir',numbers:'números',age:'frases sobre la edad',countries:'países y nacionalidades',questions:'preguntas básicas'};
  if(groups[key])speakSequence(groups[key],'Reproduciendo '+names[key]+'…','Reproducción del módulo terminada.');
 });
 applySelectedModule();
