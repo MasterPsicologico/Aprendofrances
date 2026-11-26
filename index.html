@@ -61,6 +61,7 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 @media(max-width:480px){.exercise-card{padding:13px}.exercise-card h3{font-size:19px}}
 
 #learningProgress .vocab-card{min-height:110px}#learningProgress .progress-value{font-size:22px;font-weight:800;color:var(--blue)}#resetProgress{margin-top:4px}
+.lab-pane{margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}.lab-pane[hidden]{display:none!important}#advancedPracticeLab [data-lab-tab].active{background:var(--blue);color:white}#orderChoices button{background:#edf3ff;color:#17243b;border:1px solid #cbd8ef}#orderAnswer{font-weight:750;color:var(--blue)}#dictationInput,#examInput{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin:10px 0}.lab-pane h3{margin:12px 0 6px}
 </style>
 </head>
 <body>
@@ -209,6 +210,39 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <div class="vocab-grid" id="sentencesGrid"></div>
  <section class="panel note"><strong>Estructura básica:</strong><p>Sujeto + verbo + complemento.</p><p>Je parle français. — Yo hablo francés.</p><p>J’habite au Canada. — Vivo en Canadá.</p><p>Je suis étudiant. — Soy estudiante.</p></section>
 </div>
+<section class="panel" id="advancedPracticeLab">
+ <h2 class="module-heading">🎓 Laboratorio de práctica avanzada</h2>
+ <p class="module-description">Practica lo aprendido con retos distintos. Las actividades se adaptan al módulo seleccionado arriba.</p>
+ <div class="practice-actions" role="tablist" aria-label="Tipos de práctica">
+  <button type="button" class="secondary" data-lab-tab="exam">Examen del módulo</button>
+  <button type="button" class="secondary" data-lab-tab="order">Ordenar palabras</button>
+  <button type="button" class="secondary" data-lab-tab="dictation">Dictado</button>
+  <button type="button" class="secondary" data-lab-tab="speak">Practicar pronunciación</button>
+  <button type="button" class="secondary" data-lab-tab="review">Repasar errores</button>
+ </div>
+ <div id="lab-exam" class="lab-pane">
+  <h3>Examen final del módulo</h3><p>20 preguntas variadas para comprobar lo que recuerdas. Al finalizar recibirás un nivel orientativo.</p>
+  <div class="practice-stats"><span id="examProgress">Listo para comenzar</span><span id="examScore">Aciertos: 0</span></div>
+  <div class="practice-track"><div id="examBar" style="height:100%;width:0;background:var(--blue)"></div></div>
+  <div class="exercise-card"><div class="exercise-kind" id="examKind">EXAMEN</div><h3 id="examPrompt">Pulsa comenzar para iniciar el examen.</h3><button type="button" class="secondary" id="examHear">🔊 Escuchar</button><div class="exercise-options" id="examOptions"></div><div id="examInputWrap" hidden><input id="examInput" autocomplete="off" placeholder="Escribe tu respuesta en francés"></div><p id="examFeedback" class="exercise-feedback" aria-live="polite"></p><div class="practice-actions"><button type="button" id="examCheck">Comprobar</button><button type="button" class="secondary" id="examNext" disabled>Siguiente</button><button type="button" class="secondary" id="examStart">Comenzar / repetir examen</button></div></div>
+  <p id="examLevel" class="note" aria-live="polite"></p>
+ </div>
+ <div id="lab-order" class="lab-pane" hidden>
+  <h3>Construye la oración</h3><p>Selecciona las palabras en el orden correcto. Pulsa una palabra elegida para quitarla.</p>
+  <div class="exercise-card"><h3 id="orderTranslation">Ordena las palabras para formar la frase traducida.</h3><div class="practice-actions" id="orderChoices"></div><p><strong>Tu oración:</strong> <span id="orderAnswer">—</span></p><p id="orderFeedback" class="exercise-feedback" aria-live="polite"></p><div class="practice-actions"><button type="button" id="orderCheck">Comprobar</button><button type="button" class="secondary" id="orderReset">Otra oración</button></div></div>
+ </div>
+ <div id="lab-dictation" class="lab-pane" hidden>
+  <h3>Dictado francés</h3><p>Escucha la frase y escríbela en francés. Puedes repetir el audio las veces que necesites.</p>
+  <div class="exercise-card"><button type="button" id="dictationHear">🔊 Escuchar dictado</button><input id="dictationInput" autocomplete="off" placeholder="Escribe lo que escuchaste"><div class="practice-actions"><button type="button" id="dictationCheck">Corregir dictado</button><button type="button" class="secondary" id="dictationNew">Nueva frase</button></div><p id="dictationFeedback" class="exercise-feedback" aria-live="polite"></p></div>
+ </div>
+ <div id="lab-speak" class="lab-pane" hidden>
+  <h3>Pronuncia en voz alta</h3><p>Lee la frase y pulsa el micrófono. La aplicación intentará reconocer lo que dijiste y compararlo con el modelo. El reconocimiento depende del navegador y no sustituye una evaluación fonética profesional.</p>
+  <div class="exercise-card"><h3 id="speakTarget">Bonjour !</h3><p id="speakTranslation">¡Hola!</p><p id="speakPronunciation" class="pronunciation"></p><div class="practice-actions"><button type="button" class="secondary" id="speakModel">🔊 Escuchar modelo</button><button type="button" id="speakMic">🎙️ Hablar</button><button type="button" class="secondary" id="speakNext">Otra frase</button></div><p id="speakResult" class="exercise-feedback" aria-live="polite">Pulsa «Hablar» y di la frase en francés.</p></div>
+ </div>
+ <div id="lab-review" class="lab-pane" hidden>
+  <h3>Repaso de respuestas difíciles</h3><p>Las respuestas incorrectas se guardan en este dispositivo para que puedas volver a estudiarlas.</p><div id="reviewList" class="vocab-grid"></div><div class="practice-actions"><button type="button" class="secondary" id="reviewClear">Limpiar lista de repaso</button></div>
+ </div>
+</section>
 <section class="panel" id="learningProgress">
  <h2 class="module-heading">📈 Mi progreso de aprendizaje</h2>
  <p class="module-description">Tus resultados se guardan en este dispositivo para que puedas continuar cuando regreses.</p>
@@ -691,6 +725,89 @@ startPractice();
  const reset=document.getElementById('resetProgress');
  if(reset)reset.addEventListener('click',()=>{if(confirm('¿Quieres borrar los resultados guardados en este dispositivo?')){localStorage.removeItem(STORE_KEY);paintProgress()}});
  paintProgress();
+})();
+</script>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ const key=()=> $('modulePicker')?.value||'greetings';
+ const storeKey='aprendofrances_lab_v1';
+ const bank=()=>{try{return typeof getPracticeItems==='function'?getPracticeItems():[]}catch(e){return []}};
+ const clean=s=>String(s||'').toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’']/g,"'").replace(/[.!?¿¡,]/g,'').replace(/\s+/g,' ').trim();
+ let exam=[],examAt=0,examPoints=0,examLocked=false,orderItem=null,orderPicked=[],dictationItem=null,speakAt=0;
+ let review=(()=>{try{return JSON.parse(localStorage.getItem(storeKey)||'[]')}catch(e){return []}})();
+ function persistReview(){try{localStorage.setItem(storeKey,JSON.stringify(review.slice(-100)))}catch(e){}}
+ function items(){return bank().filter(x=>x&&x.fr&&x.es)}
+ function shuffled(a){return a.slice().sort(()=>Math.random()-.5)}
+ function showTab(name){document.querySelectorAll('[data-lab-tab]').forEach(b=>b.classList.toggle('active',b.dataset.labTab===name));document.querySelectorAll('.lab-pane').forEach(p=>p.hidden=p.id!=='lab-'+name);if(name==='review')paintReview();if(name==='order'&&!orderItem)newOrder();if(name==='dictation'&&!dictationItem)newDictation()}
+ document.querySelectorAll('[data-lab-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.labTab)));
+ function startExam(){
+  const src=items();if(!src.length){$('examPrompt').textContent='Este módulo todavía no tiene vocabulario para evaluar.';return}
+  exam=Array.from({length:20},(_,i)=>({...shuffled(src)[i%src.length],kind:i%3}));examAt=0;examPoints=0;examLocked=false;$('examLevel').textContent='';renderExam();
+ }
+ function renderExam(){
+  const q=exam[examAt];if(!q)return;
+  examLocked=false;$('examProgress').textContent='Pregunta '+(examAt+1)+' de '+exam.length;$('examScore').textContent='Aciertos: '+examPoints;$('examBar').style.width=(examAt/exam.length*100)+'%';$('examFeedback').textContent='';$('examOptions').innerHTML='';$('examInputWrap').hidden=q.kind!==2;$('examInput').value='';$('examCheck').disabled=false;$('examNext').disabled=true;
+  $('examKind').textContent=['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?'Escucha y elige la traducción correcta.':q.kind===2?q.es:q.fr;
+  if(q.kind!==2){const opts=shuffled([q.es,...shuffled(exam.filter(x=>x.es!==q.es).map(x=>x.es)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
+ }
+ $('examHear').addEventListener('click',()=>{if(exam[examAt]&&typeof speak==='function')speak(exam[examAt].fr)});
+ $('examCheck').addEventListener('click',()=>{
+  if(examLocked||!exam.length)return;const q=exam[examAt],ans=q.kind===2?$('examInput').value:$('examOptions').dataset.answer;
+  if(!ans){$('examFeedback').textContent='Primero selecciona o escribe una respuesta.';return}
+  const ok=q.kind===2?clean(ans)===clean(q.fr):ans===q.es;examLocked=true;
+  $('examFeedback').textContent=ok?'¡Correcto! '+q.fr+' — '+q.es:'Respuesta correcta: '+q.fr+' — '+q.es;$('examFeedback').className='exercise-feedback '+(ok?'good':'bad');
+  if(ok)examPoints++;else addReview(q);
+  $('examScore').textContent='Aciertos: '+examPoints;$('examCheck').disabled=true;$('examNext').disabled=false;
+ });
+ $('examNext').addEventListener('click',()=>{
+  if(!examLocked)return;
+  if(examAt<exam.length-1){examAt++;renderExam();return}
+  const pct=Math.round(examPoints/exam.length*100),level=pct>=90?'Dominio excelente':pct>=75?'Nivel intermedio':pct>=50?'Nivel básico en desarrollo':'Principiante: conviene repasar';
+  $('examProgress').textContent='Examen terminado';$('examBar').style.width='100%';$('examPrompt').textContent='Resultado: '+examPoints+' de '+exam.length+' respuestas correctas ('+pct+'%).';$('examOptions').innerHTML='';$('examInputWrap').hidden=true;$('examKind').textContent='RESULTADO FINAL';$('examFeedback').textContent='Nivel orientativo: '+level;$('examLevel').textContent='Recomendación: '+(pct>=75?'continúa al siguiente módulo y vuelve a repasar en unos días.':'repite las clases y practica las respuestas que guardamos en tu lista de repaso.');$('examCheck').disabled=true;$('examNext').disabled=true;
+  try{const k='aprendofrances_progress_v1',d=JSON.parse(localStorage.getItem(k)||'{}'),old=d[key()]||{best:0,attempts:0};d[key()]={best:Math.max(old.best||0,pct),last:pct,attempts:(old.attempts||0)+1,updated:new Date().toISOString()};localStorage.setItem(k,JSON.stringify(d));}catch(e){}
+ });
+ $('examStart').addEventListener('click',startExam);
+ function newOrder(){
+  const src=items().filter(x=>x.fr.trim().split(/\s+/).length>=2);if(!src.length){$('orderTranslation').textContent='Este módulo necesita frases de varias palabras para esta actividad.';return}
+  orderItem=shuffled(src)[0];const words=orderItem.fr.split(/\s+/);orderPicked=[];$('orderTranslation').textContent='Traduce: '+orderItem.es;$('orderAnswer').textContent='—';$('orderFeedback').textContent='';$('orderChoices').innerHTML='';
+  shuffled(words.map((w,i)=>({w,id:i}))).forEach(obj=>{const b=document.createElement('button');b.type='button';b.textContent=obj.w;b.addEventListener('click',()=>{if(b.disabled)return;orderPicked.push(obj);b.disabled=true;paintOrderAnswer()});$('orderChoices').appendChild(b)});
+ }
+ function paintOrderAnswer(){ $('orderAnswer').innerHTML='';orderPicked.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=o.w+' ×';b.addEventListener('click',()=>{orderPicked.splice(i,1);$('orderChoices').querySelectorAll('button').forEach(x=>{if(x.textContent===o.w&&x.disabled){x.disabled=false;return}});paintOrderAnswer()});$('orderAnswer').appendChild(b)})}
+ $('orderCheck').addEventListener('click',()=>{if(!orderItem)return;const ok=clean(orderPicked.map(x=>x.w).join(' '))===clean(orderItem.fr);$('orderFeedback').textContent=ok?'¡Excelente! La oración está bien ordenada.':'Aún no está en el orden correcto. Prueba otra combinación o pulsa «Otra oración».';$('orderFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(orderItem)});
+ $('orderReset').addEventListener('click',newOrder);
+ function newDictation(){const src=items();if(!src.length)return;dictationItem=shuffled(src)[0];$('dictationInput').value='';$('dictationFeedback').textContent='Escucha y escribe la frase.'}
+ $('dictationHear').addEventListener('click',()=>{if(dictationItem&&typeof speak==='function')speak(dictationItem.fr)});
+ $('dictationNew').addEventListener('click',newDictation);
+ $('dictationCheck').addEventListener('click',()=>{if(!dictationItem)return;const ok=clean($('dictationInput').value)===clean(dictationItem.fr);$('dictationFeedback').textContent=ok?'¡Muy bien! Dictado correcto.':'La respuesta modelo es: '+dictationItem.fr;$('dictationFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(dictationItem)});
+ const speakSamples=[
+  {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr'},
+  {fr:'Au revoir',es:'Adiós / Hasta luego',pron:'o rə-vuár'},
+  {fr:'Je m’appelle Oscar',es:'Me llamo Óscar',pron:'ʒə ma-pel os-kar'},
+  {fr:'Je parle français',es:'Hablo francés',pron:'ʒə parl fran-sé'},
+  {fr:'Je ne comprends pas',es:'No entiendo',pron:'ʒə nə kom-pran pa'},
+  {fr:'Pouvez-vous répéter, s’il vous plaît ?',es:'¿Puede repetir, por favor?',pron:'pu-vé vu ré-pé-té sil vu plé'}
+ ];
+ function renderSpeak(){const x=speakSamples[speakAt%speakSamples.length];$('speakTarget').textContent=x.fr;$('speakTranslation').textContent=x.es;$('speakPronunciation').textContent='Pronunciación aproximada: '+x.pron;$('speakResult').textContent='Escucha el modelo y después intenta decirlo.'}
+ $('speakModel').addEventListener('click',()=>{if(typeof speak==='function')speak($('speakTarget').textContent)});
+ $('speakNext').addEventListener('click',()=>{speakAt++;renderSpeak()});
+ $('speakMic').addEventListener('click',()=>{
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){$('speakResult').textContent='Tu navegador no ofrece reconocimiento de voz. Prueba con Chrome actualizado y permite el acceso al micrófono.';return}
+  const rec=new SR();rec.lang='fr-FR';rec.interimResults=false;rec.maxAlternatives=3;$('speakResult').textContent='Escuchando… Habla ahora en francés.';
+  rec.onresult=e=>{const heard=e.results[0][0].transcript,expected=$('speakTarget').textContent;const ok=clean(heard)===clean(expected);$('speakResult').textContent='El navegador reconoció: «'+heard+'». '+(ok?'La transcripción coincide con el modelo.':'Compáralo con el modelo: '+expected+'. La transcripción no mide todos los sonidos ni tu acento.');$('speakResult').className='exercise-feedback '+(ok?'good':'bad')};
+  rec.onerror=e=>{$('speakResult').textContent='No se pudo reconocer la voz ('+e.error+'). Revisa el permiso del micrófono y la conexión.'};
+  rec.start();
+ });
+ function addReview(q){if(!q||!q.fr)return;if(!review.some(x=>x.fr===q.fr&&x.es===q.es)){review.push({fr:q.fr,es:q.es,pron:q.pron||'',module:key(),when:new Date().toISOString()});persistReview()}}
+ function paintReview(){
+  const root=$('reviewList');root.innerHTML='';
+  if(!review.length){root.textContent='¡Todavía no hay errores guardados! Completa ejercicios para crear tu lista de repaso.';return}
+  review.forEach((x,i)=>{const card=document.createElement('article');card.className='vocab-card';const fr=document.createElement('div');fr.className='french-word';fr.textContent=x.fr;const es=document.createElement('div');es.className='translation';es.textContent=x.es;const pr=document.createElement('div');pr.className='pronunciation';pr.textContent='Pronunciación aproximada: '+x.pron;const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='🔊 Escuchar';b.addEventListener('click',()=>speak(x.fr));card.append(fr,es,pr,b);root.appendChild(card)})
+ }
+ $('reviewClear').addEventListener('click',()=>{review=[];persistReview();paintReview()});
+ $('modulePicker').addEventListener('change',()=>{exam=[];orderItem=null;dictationItem=null;examAt=0;examPoints=0});
+ renderSpeak();showTab('exam');
 })();
 </script>
 </body>
