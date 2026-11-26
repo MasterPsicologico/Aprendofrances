@@ -42,6 +42,24 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 .vocab-card .context{font-size:13px;color:var(--muted);line-height:1.45;flex:1}
 .vocab-card button{align-self:flex-start}
 .lesson-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+.practice-stats{display:flex;justify-content:space-between;gap:12px;font-weight:750;margin:16px 0 8px}
+.practice-track{height:9px;background:#e7edf7;border-radius:99px;overflow:hidden;margin-bottom:16px}
+#practiceBar{height:100%;width:0;background:var(--blue);transition:width .2s}
+.exercise-card{border:1px solid var(--line);border-radius:16px;padding:17px;background:#fbfcff}
+.exercise-kind{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--green)}
+.exercise-card h3{font-size:22px;line-height:1.35;margin:9px 0}
+.exercise-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px;margin:15px 0}
+.exercise-options button{background:white;color:var(--ink);border:1px solid var(--line);text-align:left}
+.exercise-options button.chosen{border:2px solid var(--blue);background:var(--pale)}
+.exercise-options button.correct{border:2px solid #13795b;background:#eaf8f1}
+.exercise-options button.wrong{border:2px solid #b43a42;background:#fff0f0}
+#exerciseInput{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin:8px 0}
+.practice-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.exercise-feedback{min-height:26px;margin-top:13px;font-weight:650;line-height:1.5}
+.exercise-feedback.good{color:#13795b}.exercise-feedback.bad{color:#a52d35}
+@media(max-width:480px){.exercise-card{padding:13px}.exercise-card h3{font-size:19px}}
+
 </style>
 </head>
 <body>
@@ -62,6 +80,10 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
   <option value="age">Módulo 7 — La edad y los años</option>
   <option value="countries">Módulo 8 — Países y nacionalidades</option>
   <option value="questions">Módulo 9 — Preguntas básicas</option>
+  <option value="articles">Módulo 10 — Artículos definidos e indefinidos</option>
+  <option value="gender">Módulo 11 — Masculino y femenino</option>
+  <option value="adjectives">Módulo 12 — Adjetivos y descripciones</option>
+  <option value="sentences">Módulo 13 — Construir oraciones</option>
  </select>
 </section>
 <section class="panel">
@@ -160,6 +182,48 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <section class="vocab-grid" id="questionsGrid"></section>
  <section class="panel note"><strong>Consejo:</strong> «Est-ce que…» permite formar muchas preguntas. Por ejemplo: «Est-ce que tu parles français ?» — ¿Hablas francés?</section>
 </div>
+
+
+<div id="moduleArticles" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 10: Los artículos</h2><p class="module-description">Aprende a decir «el», «la», «los», «las» y «un», «una», «unos», «unas». En francés, los artículos cambian según el género y el número.</p></section>
+ <section class="panel detail"><div class="big">📚</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Le, la, les, un, une y des</h2><p>Escucha cada ejemplo, identifica el artículo y observa cómo acompaña al sustantivo.</p></div><button id="playArticles">▶ Escuchar la clase</button></section>
+ <div class="vocab-grid" id="articlesGrid"></div>
+ <section class="panel note"><strong>Regla útil:</strong> «le» y «la» se convierten en «l’» delante de una vocal o h muda: l’école (la escuela), l’hôtel (el hotel). «Les» sirve para el plural masculino y femenino.</section>
+</div>
+<div id="moduleGender" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 11: Masculino y femenino</h2><p class="module-description">Los sustantivos franceses tienen género gramatical. Aprende cada palabra junto con su artículo para recordarlo mejor.</p></section>
+ <section class="panel detail"><div class="big">⚖️</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Reconocer el género</h2><p>Compara palabras masculinas y femeninas. No siempre se puede adivinar el género por la terminación.</p></div><button id="playGender">▶ Escuchar la clase</button></section>
+ <div class="vocab-grid" id="genderGrid"></div>
+ <section class="panel note"><strong>Consejo de estudio:</strong> memoriza «un livre» y «une maison», no solamente «livre» y «maison». El artículo te ayuda a recordar el género.</section>
+</div>
+<div id="moduleAdjectives" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 12: Adjetivos y descripciones</h2><p class="module-description">Aprende a describir personas y cosas. Muchos adjetivos cambian en femenino y plural.</p></section>
+ <section class="panel detail"><div class="big">🎨</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Describir cómo es algo</h2><p>Escucha las formas y fíjate en los cambios de género y número.</p></div><button id="playAdjectives">▶ Escuchar la clase</button></section>
+ <div class="vocab-grid" id="adjectivesGrid"></div>
+ <section class="panel note"><strong>Ejemplos:</strong><p>Il est grand. — Él es alto.</p><p>Elle est grande. — Ella es alta.</p><p>La maison est grande. — La casa es grande.</p><button class="secondary" id="playAdjectiveExamples">🔊 Escuchar ejemplos</button></section>
+</div>
+<div id="moduleSentences" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 13: Construir oraciones</h2><p class="module-description">Combina sujeto + verbo + complemento para crear tus primeras frases. Aprende modelos que podrás adaptar a tu vida cotidiana.</p></section>
+ <section class="panel detail"><div class="big">🧩</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Frases sencillas</h2><p>Observa el orden de las palabras y escucha cómo suena la oración completa.</p></div><button id="playSentences">▶ Escuchar la clase</button></section>
+ <div class="vocab-grid" id="sentencesGrid"></div>
+ <section class="panel note"><strong>Estructura básica:</strong><p>Sujeto + verbo + complemento.</p><p>Je parle français. — Yo hablo francés.</p><p>J’habite au Canada. — Vivo en Canadá.</p><p>Je suis étudiant. — Soy estudiante.</p></section>
+</div>
+<section class="panel practice" id="practicePanel">
+ <h2 class="module-heading">🎯 Zona de práctica interactiva</h2>
+ <p class="module-description">Practica lo que acabas de estudiar. Puedes responder, comprobar, escuchar la frase y avanzar. Las preguntas cambian según el módulo seleccionado.</p>
+ <div class="practice-stats"><span id="practiceProgress">Pregunta 1 de 10</span><span id="practiceScore">Aciertos: 0</span></div>
+ <div class="practice-track"><div id="practiceBar"></div></div>
+ <div class="exercise-card">
+  <div class="exercise-kind" id="exerciseKind">TRADUCE AL ESPAÑOL</div>
+  <h3 id="exercisePrompt">Preparando ejercicio…</h3>
+  <p id="exerciseHint" class="note"></p>
+  <div id="exerciseOptions" class="exercise-options"></div>
+  <div id="exerciseInputWrap" hidden><input id="exerciseInput" type="text" autocomplete="off" placeholder="Escribe tu respuesta en francés o español"><button id="checkTyped" type="button">Comprobar respuesta</button></div>
+  <div class="practice-actions"><button id="hearExercise" class="secondary" type="button">🔊 Escuchar</button><button id="checkChoice" type="button">Comprobar</button><button id="nextExercise" class="secondary" type="button" disabled>Siguiente →</button></div>
+  <div id="exerciseFeedback" class="exercise-feedback" aria-live="polite"></div>
+ </div>
+ <div class="practice-actions"><button id="restartPractice" class="secondary" type="button">↻ Reiniciar práctica</button></div>
+</section>
 
 </main>
 <script>
@@ -374,6 +438,55 @@ const questions = [
  {fr:'Parlez-vous espagnol ?',es:'¿Habla usted español?',pron:'par-lé vu es-pa-ñol',note:'Pregunta formal.'}
 ];
 
+
+const articles = [
+ {fr:'le livre',es:'el libro',pron:'lə livr',note:'Artículo definido masculino singular.'},
+ {fr:'la maison',es:'la casa',pron:'la me-zon',note:'Artículo definido femenino singular.'},
+ {fr:'les amis',es:'los amigos / las amistades',pron:'lez a-mi',note:'Artículo definido plural.'},
+ {fr:'un stylo',es:'un bolígrafo',pron:'an sti-lo',note:'Artículo indefinido masculino.'},
+ {fr:'une table',es:'una mesa',pron:'ün tabl',note:'Artículo indefinido femenino.'},
+ {fr:'des livres',es:'unos libros',pron:'de livr',note:'Artículo indefinido plural.'},
+ {fr:'l’école',es:'la escuela',pron:'le-kol',note:'El artículo se contrae delante de vocal.'},
+ {fr:'l’hôtel',es:'el hotel',pron:'lo-tel',note:'El artículo se contrae delante de h muda.'},
+ {fr:'les enfants',es:'los niños / las niñas',pron:'lez an-fan',note:'«Les» se usa para plural masculino y femenino.'}
+];
+const gender = [
+ {fr:'un livre',es:'un libro — masculino',pron:'an livr',note:'«Livre» es masculino.'},
+ {fr:'une maison',es:'una casa — femenino',pron:'ün me-zon',note:'«Maison» es femenino.'},
+ {fr:'un garçon',es:'un niño — masculino',pron:'an gar-son',note:'«Garçon» es masculino.'},
+ {fr:'une fille',es:'una niña — femenino',pron:'ün fíy',note:'«Fille» es femenino.'},
+ {fr:'un chien',es:'un perro — masculino',pron:'an shyan',note:'«Chien» es masculino.'},
+ {fr:'une voiture',es:'un automóvil — femenino',pron:'ün vua-tür',note:'«Voiture» es femenino.'},
+ {fr:'un ami',es:'un amigo — masculino',pron:'an a-mi',note:'«Ami» es masculino.'},
+ {fr:'une amie',es:'una amiga — femenino',pron:'ün a-mi',note:'La escritura cambia; la pronunciación es prácticamente igual.'},
+ {fr:'un problème',es:'un problema — masculino',pron:'an pro-blem',note:'Aunque termina en -e, es masculino: cuidado con las reglas generales.'},
+ {fr:'une personne',es:'una persona — femenino',pron:'ün per-son',note:'«Personne» es femenino, sea hombre o mujer.'}
+];
+const adjectives = [
+ {fr:'grand / grande',es:'alto / alta; grande',pron:'gran / grand',note:'El femenino suele añadir una -e escrita y puede hacer oír la consonante final.'},
+ {fr:'petit / petite',es:'pequeño / pequeña',pron:'pə-ti / pə-tit',note:'Masculino y femenino.'},
+ {fr:'content / contente',es:'contento / contenta',pron:'kon-tan / kon-tant',note:'La forma femenina hace oír la t final.'},
+ {fr:'fatigué / fatiguée',es:'cansado / cansada',pron:'fa-ti-gé',note:'La pronunciación es igual en masculino y femenino.'},
+ {fr:'beau / belle',es:'guapo / hermoso; bella',pron:'bo / bel',note:'Forma irregular.'},
+ {fr:'bon / bonne',es:'bueno / buena',pron:'bon / bon',note:'La forma femenina duplica la n en la escritura.'},
+ {fr:'petit / grande',es:'pequeño / grande',pron:'pə-ti / grand',note:'Adjetivos frecuentes para describir tamaño.'},
+ {fr:'nouveau / nouvelle',es:'nuevo / nueva',pron:'nu-vo / nu-vel',note:'Forma femenina irregular.'},
+ {fr:'intelligent / intelligente',es:'inteligente',pron:'an-te-li-ʒan',note:'La escritura cambia en femenino; la pronunciación es muy similar.'},
+ {fr:'important / importante',es:'importante',pron:'an-por-tan',note:'La forma femenina añade -e escrita.'}
+];
+const sentences = [
+ {fr:'Je parle français.',es:'Hablo francés.',pron:'ʒə parl fran-sé',note:'Sujeto je + verbo parle + complemento français.'},
+ {fr:'Tu habites ici.',es:'Vives aquí.',pron:'tü a-bit i-si',note:'Sujeto tu + verbo habites + lugar ici.'},
+ {fr:'Il aime le café.',es:'A él le gusta el café.',pron:'il em lə ka-fé',note:'Sujeto il + verbo aime + complemento.'},
+ {fr:'Elle est contente.',es:'Ella está contenta.',pron:'el e kon-tant',note:'Sujeto elle + verbo est + adjetivo.'},
+ {fr:'Nous avons un livre.',es:'Tenemos un libro.',pron:'nu za-von an livr',note:'Sujeto nous + verbo avons + objeto.'},
+ {fr:'Je viens de Colombie.',es:'Vengo de Colombia.',pron:'ʒə vyan də ko-lom-bi',note:'Frase para indicar procedencia.'},
+ {fr:'J’habite au Canada.',es:'Vivo en Canadá.',pron:'ʒa-bit o ka-na-da',note:'«Au» se usa con Canada.'},
+ {fr:'Vous parlez français ?',es:'¿Habla usted francés? / ¿Hablan francés?',pron:'vu par-lé fran-sé',note:'Pregunta con entonación ascendente.'},
+ {fr:'Je ne comprends pas.',es:'No entiendo.',pron:'ʒə nə kom-pran pa',note:'Negación ne… pas.'},
+ {fr:'Je voudrais un café.',es:'Quisiera un café.',pron:'ʒə vu-drè an ka-fé',note:'Forma educada para pedir algo.'}
+];
+
 const greetings = [
  {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr',note:'Saludo habitual durante el día.'},
  {fr:'Salut',es:'Hola / Chao (informal)',pron:'sa-lü',note:'Se utiliza con amigos, familiares o personas de confianza.'},
@@ -405,10 +518,10 @@ function renderGreetings(){
 }
 function applySelectedModule(){
  const key=$('modulePicker').value;
- const ids={alphabet:'moduleAlphabet',greetings:'moduleGreetings',introductions:'moduleIntroductions',pronouns:'modulePronouns',verbs:'moduleVerbs',numbers:'moduleNumbers',age:'moduleAge',countries:'moduleCountries',questions:'moduleQuestions'};
+ const ids={alphabet:'moduleAlphabet',greetings:'moduleGreetings',introductions:'moduleIntroductions',pronouns:'modulePronouns',verbs:'moduleVerbs',numbers:'moduleNumbers',age:'moduleAge',countries:'moduleCountries',questions:'moduleQuestions',articles:'moduleArticles',gender:'moduleGender',adjectives:'moduleAdjectives',sentences:'moduleSentences'};
  Object.entries(ids).forEach(([name,id])=>$(id).hidden=name!==key);
- const labels={alphabet:'Módulo 1: alfabeto francés.',greetings:'Módulo 2: saludos y despedidas.',introductions:'Módulo 3: presentarse.',pronouns:'Módulo 4: pronombres personales.',verbs:'Módulo 5: verbos esenciales être y avoir.',numbers:'Módulo 6: los números.',age:'Módulo 7: la edad y los años.',countries:'Módulo 8: países y nacionalidades.',questions:'Módulo 9: preguntas básicas.'};
- const playLabels={alphabet:'▶ Escuchar alfabeto',greetings:'▶ Escuchar saludos',introductions:'▶ Escuchar presentaciones',pronouns:'▶ Escuchar pronombres',verbs:'▶ Escuchar verbos',numbers:'▶ Escuchar números',age:'▶ Escuchar edades',countries:'▶ Escuchar países',questions:'▶ Escuchar preguntas'};
+ const labels={alphabet:'Módulo 1: alfabeto francés.',greetings:'Módulo 2: saludos y despedidas.',introductions:'Módulo 3: presentarse.',pronouns:'Módulo 4: pronombres personales.',verbs:'Módulo 5: verbos esenciales être y avoir.',numbers:'Módulo 6: los números.',age:'Módulo 7: la edad y los años.',countries:'Módulo 8: países y nacionalidades.',questions:'Módulo 9: preguntas básicas.',articles:'Módulo 10: artículos.',gender:'Módulo 11: masculino y femenino.',adjectives:'Módulo 12: adjetivos y descripciones.',sentences:'Módulo 13: construir oraciones.'};
+ const playLabels={alphabet:'▶ Escuchar alfabeto',greetings:'▶ Escuchar saludos',introductions:'▶ Escuchar presentaciones',pronouns:'▶ Escuchar pronombres',verbs:'▶ Escuchar verbos',numbers:'▶ Escuchar números',age:'▶ Escuchar edades',countries:'▶ Escuchar países',questions:'▶ Escuchar preguntas',articles:'▶ Escuchar artículos',gender:'▶ Escuchar género',adjectives:'▶ Escuchar adjetivos',sentences:'▶ Escuchar oraciones'};
  $('playAll').textContent=playLabels[key]||'▶ Escuchar módulo';
  queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
  $('status').textContent=labels[key]||'Módulo seleccionado.';
@@ -436,6 +549,13 @@ renderCards(numbers,'numbersGrid');
 renderCards(agePhrases,'ageGrid');
 renderCards(countries,'countriesGrid');
 renderCards(questions,'questionsGrid');
+renderCards(articles,'articlesGrid');renderCards(gender,'genderGrid');renderCards(adjectives,'adjectivesGrid');renderCards(sentences,'sentencesGrid');
+$('playArticles').addEventListener('click',()=>speakSequence(articles.map(x=>x.fr),'Reproduciendo artículos…','Clase terminada.'));
+$('playGender').addEventListener('click',()=>speakSequence(gender.map(x=>x.fr),'Reproduciendo sustantivos…','Clase terminada.'));
+$('playAdjectives').addEventListener('click',()=>speakSequence(adjectives.map(x=>x.fr),'Reproduciendo adjetivos…','Clase terminada.'));
+$('playSentences').addEventListener('click',()=>speakSequence(sentences.map(x=>x.fr),'Reproduciendo oraciones…','Clase terminada.'));
+$('playAdjectiveExamples').addEventListener('click',()=>speakSequence(['Il est grand.','Elle est grande.','La maison est grande.'],'Escuchando ejemplos…','Ejemplos terminados.'));
+
 $('playNumbers').addEventListener('click',()=>speakSequence(numbers.map(x=>x.fr),'Reproduciendo los números…','Clase de números terminada.'));
 $('playAge').addEventListener('click',()=>speakSequence(agePhrases.map(x=>x.fr),'Reproduciendo las frases sobre la edad…','Clase sobre la edad terminada.'));
 $('playCountries').addEventListener('click',()=>speakSequence(countries.map(x=>x.fr),'Reproduciendo países y nacionalidades…','Clase de países terminada.'));
@@ -451,11 +571,73 @@ $('playVerbExamples').addEventListener('click',()=>speakSequence(["Je suis Oscar
 $('playAll').addEventListener('click',()=>{
  const key=$('modulePicker').value;
  if(key==='alphabet')return;
- const groups={greetings:greetings.map(x=>x.fr),introductions:introductions.map(x=>x.fr),pronouns:pronouns.map(x=>x.fr),verbs:[...etre,...avoir].map(x=>x.fr),numbers:numbers.map(x=>x.fr),age:agePhrases.map(x=>x.fr),countries:countries.map(x=>x.fr),questions:questions.map(x=>x.fr)};
- const names={greetings:'saludos',introductions:'presentaciones',pronouns:'pronombres',verbs:'verbos être y avoir',numbers:'números',age:'frases sobre la edad',countries:'países y nacionalidades',questions:'preguntas básicas'};
+ const groups={greetings:greetings.map(x=>x.fr),introductions:introductions.map(x=>x.fr),pronouns:pronouns.map(x=>x.fr),verbs:[...etre,...avoir].map(x=>x.fr),numbers:numbers.map(x=>x.fr),age:agePhrases.map(x=>x.fr),countries:countries.map(x=>x.fr),questions:questions.map(x=>x.fr),articles:articles.map(x=>x.fr),gender:gender.map(x=>x.fr),adjectives:adjectives.map(x=>x.fr),sentences:sentences.map(x=>x.fr)};
+ const names={greetings:'saludos',introductions:'presentaciones',pronouns:'pronombres',verbs:'verbos être y avoir',numbers:'números',age:'frases sobre la edad',countries:'países y nacionalidades',questions:'preguntas básicas',articles:'artículos',gender:'género de los sustantivos',adjectives:'adjetivos',sentences:'oraciones'};
  if(groups[key])speakSequence(groups[key],'Reproduciendo '+names[key]+'…','Reproducción del módulo terminada.');
 });
 applySelectedModule();
+
+const practiceSets={
+ greetings:greetings,introductions:introductions,pronouns:pronouns,verbs:[...etre,...avoir],numbers:numbers,age:agePhrases,countries:countries,questions:questions,articles:articles,gender:gender,adjectives:adjectives,sentences:sentences
+};
+let exerciseList=[],exerciseIndex=0,exerciseScore=0,selectedAnswer=null,exerciseLocked=false;
+const norm=s=>String(s).toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’']/g,"'").replace(/[.!?¿¡]/g,'').trim();
+function getPracticeItems(){
+ const key=$('modulePicker').value;
+ if(key==='alphabet')return letters.filter(x=>x[0]!=='Ñ').map(x=>({fr:x[0],es:'Nombre de la letra: '+x[1],pron:x[2],note:x[3]}));
+ return practiceSets[key]||greetings;
+}
+function startPractice(){
+ const source=getPracticeItems();exerciseList=[];
+ for(let i=0;i<10;i++){const item=source[i%source.length];exerciseList.push({...item,kind:i%3});}
+ exerciseIndex=0;exerciseScore=0;renderExercise();
+}
+function renderExercise(){
+ selectedAnswer=null;exerciseLocked=false;
+ const item=exerciseList[exerciseIndex];const kind=exerciseIndex%3;
+ $('practiceProgress').textContent='Pregunta '+(exerciseIndex+1)+' de '+exerciseList.length;
+ $('practiceScore').textContent='Aciertos: '+exerciseScore;
+ $('practiceBar').style.width=(exerciseIndex/exerciseList.length*100)+'%';
+ $('exerciseOptions').innerHTML='';$('exerciseFeedback').textContent='';$('exerciseFeedback').className='exercise-feedback';
+ $('exerciseInputWrap').hidden=kind!==2;$('checkChoice').hidden=kind===2;$('checkTyped').disabled=false;$('exerciseInput').value='';
+ if(kind===0){
+  $('exerciseKind').textContent='ELIGE LA TRADUCCIÓN CORRECTA';
+  $('exercisePrompt').textContent=item.fr;
+  $('exerciseHint').textContent='¿Qué significa esta expresión en español?';
+  const distractors=exerciseList.filter((x,i)=>i!==exerciseIndex&&x.es!==item.es).map(x=>x.es);
+  const opts=[item.es,...distractors.slice(0,3)].sort(()=>Math.random()-.5);
+  opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(exerciseLocked)return;selectedAnswer=v;document.querySelectorAll('#exerciseOptions button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen')});$('exerciseOptions').appendChild(b)});
+ }else if(kind===1){
+  $('exerciseKind').textContent='ESCUCHA Y RECONOCE';
+  $('exercisePrompt').textContent='Escucha la expresión y selecciona su significado.';
+  $('exerciseHint').textContent='Pulsa «Escuchar» y después elige la traducción.';
+  const distractors=exerciseList.filter((x,i)=>i!==exerciseIndex&&x.es!==item.es).map(x=>x.es);
+  [item.es,...distractors.slice(0,3)].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(exerciseLocked)return;selectedAnswer=v;document.querySelectorAll('#exerciseOptions button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen')});$('exerciseOptions').appendChild(b)});
+ }else{
+  $('exerciseKind').textContent='ESCRIBE EN FRANCÉS';
+  $('exercisePrompt').textContent=item.es;
+  $('exerciseHint').textContent='Escribe la expresión francesa que corresponde. No te preocupes por mayúsculas ni signos de puntuación.';
+ }
+ $('nextExercise').disabled=true;$('nextExercise').textContent=exerciseIndex===exerciseList.length-1?'Ver resultado':'Siguiente →';
+}
+function checkExercise(){
+ if(exerciseLocked)return;
+ const item=exerciseList[exerciseIndex],kind=exerciseIndex%3;
+ const answer=kind===2?$('exerciseInput').value:selectedAnswer;
+ if(!answer){$('exerciseFeedback').textContent='Selecciona o escribe una respuesta antes de comprobar.';return}
+ const correct=kind===2?norm(answer)===norm(item.fr):answer===item.es;
+ exerciseLocked=true;
+ if(correct){exerciseScore++;$('exerciseFeedback').textContent='¡Muy bien! '+item.fr+' = '+item.es;$('exerciseFeedback').className='exercise-feedback good'}
+ else{$('exerciseFeedback').textContent='Todavía no. La respuesta correcta es: '+item.fr+' = '+item.es;$('exerciseFeedback').className='exercise-feedback bad'}
+ if(kind!==2)document.querySelectorAll('#exerciseOptions button').forEach(b=>{if(b.textContent===item.es)b.classList.add('correct');else if(b.textContent===answer)b.classList.add('wrong')});
+ $('practiceScore').textContent='Aciertos: '+exerciseScore;$('nextExercise').disabled=false;
+}
+$('checkChoice').addEventListener('click',checkExercise);$('checkTyped').addEventListener('click',checkExercise);
+$('hearExercise').addEventListener('click',()=>speak(exerciseList[exerciseIndex].fr));
+$('nextExercise').addEventListener('click',()=>{if(!exerciseLocked)return;if(exerciseIndex<exerciseList.length-1){exerciseIndex++;renderExercise()}else{const pct=Math.round(exerciseScore/exerciseList.length*100);$('exerciseKind').textContent='RESULTADO FINAL';$('exercisePrompt').textContent='Has obtenido '+exerciseScore+' de '+exerciseList.length+' aciertos.';$('exerciseHint').textContent=pct>=80?'¡Excelente trabajo! Sigue practicando para consolidarlo.':'Buen intento. Repite la práctica y escucha las palabras que te resultaron difíciles.';$('exerciseOptions').innerHTML='';$('exerciseInputWrap').hidden=true;$('checkChoice').hidden=true;$('nextExercise').disabled=true;$('practiceBar').style.width='100%';$('exerciseFeedback').textContent='Puntuación: '+pct+'%';}});
+$('restartPractice').addEventListener('click',startPractice);
+$('modulePicker').addEventListener('change',startPractice);
+startPractice();
 
 </script>
 </body>
