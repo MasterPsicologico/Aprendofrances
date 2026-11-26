@@ -28,14 +28,35 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 .detail h2{margin:0 0 4px;font-size:21px}.detail p{margin:3px 0;color:var(--muted)}
 .note{font-size:14px;line-height:1.55;color:var(--muted)}
 @media(max-width:480px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tile{min-height:135px}.panel{padding:14px}}
+
+.module-select{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.module-select label{font-weight:750}
+.module-select select{flex:1;min-width:220px;font-size:15px}
+.module-heading{margin:0 0 6px;font-size:24px}
+.module-description{margin:0;color:var(--muted);line-height:1.5}
+.vocab-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.vocab-card{background:white;border:1px solid var(--line);border-radius:15px;padding:15px;display:flex;flex-direction:column;gap:7px}
+.vocab-card .french-word{font-size:23px;font-weight:800;color:var(--blue)}
+.vocab-card .translation{font-weight:650}
+.vocab-card .pronunciation{font-size:13px;color:var(--green)}
+.vocab-card .context{font-size:13px;color:var(--muted);line-height:1.45;flex:1}
+.vocab-card button{align-self:flex-start}
+.lesson-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-<h1>🇫🇷 Mi alfabeto francés</h1>
-<p>Selecciona una letra para escuchar su nombre en francés. Aprende también cómo se escribe y una aproximación de su sonido para hispanohablantes.</p>
+<h1>🇫🇷 Aprende francés paso a paso</h1>
+<p>Clases progresivas desde cero. Escucha cada letra y palabra, practica a tu ritmo y avanza módulo por módulo.</p>
 </div></header>
 <main class="wrap">
+<section class="panel module-select">
+ <label for="modulePicker">📚 Selecciona una clase:</label>
+ <select id="modulePicker" aria-label="Seleccionar módulo de aprendizaje">
+  <option value="alphabet">Módulo 1 — El alfabeto francés</option>
+  <option value="greetings">Módulo 2 — Saludos y despedidas</option>
+ </select>
+</section>
 <section class="panel">
  <div class="controls">
   <label for="voice">Voz francesa:</label><select id="voice"><option value="">Detectar voz francesa automáticamente</option></select>
@@ -44,6 +65,7 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  </div>
  <div id="status" class="status" aria-live="polite">Preparando las voces disponibles… Para escuchar correctamente, permite el audio del navegador y selecciona una voz que indique francés (fr-FR o fr-CA).</div>
 </section>
+<div id="moduleAlphabet" class="module-view">
 <section class="panel detail" aria-live="polite">
  <div class="big" id="selectedLetter">A</div>
  <div style="flex:1;min-width:180px">
@@ -59,6 +81,27 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <br><br>
  <strong>Sobre el audio:</strong> la aplicación utiliza la voz francesa instalada en tu navegador o dispositivo mediante la función de lectura de texto. La calidad y naturalidad dependen de la voz disponible; no todos los dispositivos incluyen una voz francesa de alta calidad. Si no aparece ninguna, instala o activa una voz francesa en los ajustes de texto a voz del dispositivo.
 </section>
+</div>
+
+<div id="moduleGreetings" class="module-view" hidden>
+ <section class="panel">
+  <h2 class="module-heading">Módulo 2: Saludos y despedidas</h2>
+  <p class="module-description">Aprende a saludar, despedirte y utilizar expresiones de cortesía en situaciones cotidianas. Pulsa cada tarjeta para escuchar la pronunciación en francés.</p>
+ </section>
+ <section class="panel detail">
+  <div class="big">👋</div>
+  <div style="flex:1;min-width:180px">
+   <h2>Clase 1 — Saludos básicos</h2>
+   <p>Comienza con expresiones sencillas que puedes utilizar al conocer a alguien o al iniciar una conversación.</p>
+   <p>Lee la traducción y escucha varias veces. Puedes reducir la velocidad con el control superior.</p>
+  </div>
+  <button id="playGreetings">▶ Escuchar esta clase</button>
+ </section>
+ <section class="vocab-grid" id="greetingsGrid" aria-label="Vocabulario de saludos y despedidas"></section>
+ <section class="panel note">
+  <strong>Consejo:</strong> en francés, «Bonjour» se utiliza durante el día para saludar. «Bonsoir» se utiliza al llegar la tarde o por la noche. «Bonne nuit» suele decirse al despedirse para ir a dormir.
+ </section>
+</div>
 </main>
 <script>
 const letters = [
@@ -151,8 +194,60 @@ $('playAll').addEventListener('click',async()=>{
  }
  if(token===queueToken)$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.';
 });
-render();loadVoices();
+render();renderGreetings();loadVoices();
 if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=loadVoices;
+
+const greetings = [
+ {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr',note:'Saludo habitual durante el día.'},
+ {fr:'Salut',es:'Hola / Chao (informal)',pron:'sa-lü',note:'Se utiliza con amigos, familiares o personas de confianza.'},
+ {fr:'Bonsoir',es:'Buenas tardes / Buenas noches',pron:'bon-suár',note:'Saludo que se utiliza al llegar la tarde o la noche.'},
+ {fr:'Bonne nuit',es:'Buenas noches (para dormir)',pron:'bon nüí',note:'Se dice cuando alguien se va a dormir.'},
+ {fr:'Au revoir',es:'Adiós / Hasta luego',pron:'o revuár',note:'Despedida habitual y educada.'},
+ {fr:'À bientôt',es:'Hasta pronto',pron:'a byan-tó',note:'Se utiliza cuando esperas volver a ver a esa persona.'},
+ {fr:'À demain',es:'Hasta mañana',pron:'a de-mán',note:'Despedida cuando verás a la persona al día siguiente.'},
+ {fr:'À tout à l’heure',es:'Hasta dentro de un rato',pron:'a tut a lér',note:'Se usa cuando volverás a ver a alguien más tarde.'},
+ {fr:'Merci',es:'Gracias',pron:'mer-sí',note:'Expresión básica para agradecer.'},
+ {fr:'Merci beaucoup',es:'Muchas gracias',pron:'mer-sí bo-kú',note:'Una forma más enfática de dar las gracias.'},
+ {fr:'S’il vous plaît',es:'Por favor (formal)',pron:'sil vu plé',note:'Se utiliza para pedir algo con educación.'},
+ {fr:'S’il te plaît',es:'Por favor (informal)',pron:'sil tə plé',note:'Se utiliza con amigos, familiares o personas de confianza.'},
+ {fr:'Excusez-moi',es:'Disculpe / Perdón (formal)',pron:'ex-kü-zé muá',note:'Para llamar la atención o pedir disculpas de manera educada.'},
+ {fr:'Pardon',es:'Perdón',pron:'par-dón',note:'Expresión breve para disculparse o pedir que repitan.'}
+];
+function renderGreetings(){
+ const grid=$('greetingsGrid');grid.innerHTML='';
+ greetings.forEach((item,index)=>{
+  const card=document.createElement('article');card.className='vocab-card';
+  const word=document.createElement('div');word.className='french-word';word.textContent=item.fr;
+  const translation=document.createElement('div');translation.className='translation';translation.textContent=item.es;
+  const pron=document.createElement('div');pron.className='pronunciation';pron.textContent='Pronunciación aproximada: '+item.pron;
+  const note=document.createElement('div');note.className='context';note.textContent=item.note;
+  const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='🔊 Escuchar';
+  button.setAttribute('aria-label','Escuchar '+item.fr);button.addEventListener('click',()=>speak(item.fr));
+  card.append(word,translation,pron,note,button);grid.appendChild(card);
+ });
+}
+$('modulePicker').addEventListener('change',()=>{
+ const isAlphabet=$('modulePicker').value==='alphabet';
+ $('moduleAlphabet').hidden=!isAlphabet;
+ $('moduleGreetings').hidden=isAlphabet;
+ queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
+ $('status').textContent=isAlphabet?'Módulo 1: alfabeto francés.':'Módulo 2: saludos y despedidas.';
+});
+$('playGreetings').addEventListener('click',async()=>{
+ if(!('speechSynthesis'in window))return;
+ speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
+ $('status').textContent='Reproduciendo el vocabulario de saludos…';
+ for(const item of greetings){
+  if(token!==queueToken)return;
+  await new Promise(resolve=>{
+   const u=new SpeechSynthesisUtterance(item.fr);if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';u.rate=rate;
+   u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u);
+  });
+ }
+ if(token===queueToken)$('status').textContent='¡Clase terminada! Puedes repetir cualquier expresión.';
+});
+renderGreetings();
+
 </script>
 </body>
 </html>
