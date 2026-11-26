@@ -883,8 +883,14 @@ startPractice();
   const history=read(HISTORY_KEY,[]);
   const moduleNames=Object.values(titles);
   const bestByModule=moduleNames.map((name,index)=>{
+   const moduleNumber=index+1;
    const prefix='Examen de módulo:';
-   const matches=history.filter(x=>String(x.title||'').startsWith(prefix)&&String(x.title||'').includes(name));
+   const matches=history.filter(x=>{
+    const title=String(x.title||'');
+    if(!title.startsWith(prefix))return false;
+    const match=title.match(/Módulo\\s+(\\d+)/i);
+    return match&&Number(match[1])===moduleNumber;
+   });
    return {name,score:matches.length?Math.max(...matches.map(x=>Number(x.score)||0)):null};
   });
   const cumulative=history.filter(x=>x.title==='Examen acumulativo').reduce((best,x)=>Math.max(best,Number(x.score)||0),0);
