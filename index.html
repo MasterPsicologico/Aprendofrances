@@ -250,6 +250,33 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <div id="progressList" class="vocab-grid" style="margin-top:12px"></div>
  <div class="practice-actions"><button type="button" class="secondary" id="resetProgress">Borrar mi progreso guardado</button></div>
 </section>
+<section class="panel" id="learningDashboard">
+ <h2 class="module-heading">🗓️ Seguimiento, repasos e historial</h2>
+ <p class="module-description">Consulta tus avances, revisa a tiempo las palabras difíciles y conserva un historial de tus evaluaciones en este dispositivo.</p>
+ <div class="vocab-grid" id="dashboardStats" style="margin-top:12px"></div>
+ <div class="exercise-card" style="margin-top:14px">
+  <h3>🏆 Examen acumulativo</h3>
+  <p class="note">Una evaluación de 30 preguntas que combina los módulos estudiados. El resultado se guarda en tu historial y en el progreso general.</p>
+  <div class="practice-stats"><span id="cumulativeProgress">Listo para comenzar</span><span id="cumulativeScore">Aciertos: 0</span></div>
+  <div class="practice-track"><div id="cumulativeBar" style="height:100%;width:0;background:var(--blue)"></div></div>
+  <div class="exercise-kind" id="cumulativeKind">EXAMEN GENERAL</div>
+  <h3 id="cumulativePrompt">Pulsa «Comenzar examen» para evaluar lo aprendido en todos los módulos.</h3>
+  <div id="cumulativeOptions" class="exercise-options"></div>
+  <div id="cumulativeInputWrap" hidden><input id="cumulativeInput" placeholder="Escribe la respuesta en francés" autocomplete="off"></div>
+  <p id="cumulativeFeedback" class="exercise-feedback" aria-live="polite"></p>
+  <div class="practice-actions"><button type="button" id="cumulativeHear" class="secondary">🔊 Escuchar</button><button type="button" id="cumulativeCheck">Comprobar</button><button type="button" id="cumulativeNext" class="secondary" disabled>Siguiente</button><button type="button" id="cumulativeStart" class="secondary">Comenzar examen</button></div>
+ </div>
+ <div class="lab-pane" style="display:block">
+  <h3>⏰ Repasos programados</h3>
+  <p class="note">Cuando marques una palabra como repasada, el siguiente recordatorio se programa progresivamente: 1, 3, 7 y 14 días. Las palabras nuevas de tu lista de errores aparecen aquí para que no se olviden.</p>
+  <div id="scheduledReviews" class="vocab-grid"></div>
+ </div>
+ <div class="lab-pane" style="display:block">
+  <h3>📜 Historial de evaluaciones</h3>
+  <div id="evaluationHistory" class="vocab-grid"></div>
+  <div class="practice-actions"><button type="button" class="secondary" id="clearEvaluationHistory">Borrar historial de evaluaciones</button></div>
+ </div>
+</section>
 <section class="panel practice" id="practicePanel">
  <h2 class="module-heading">🎯 Zona de práctica interactiva</h2>
  <p class="module-description">Practica lo que acabas de estudiar. Puedes responder, comprobar, escuchar la frase y avanzar. Las preguntas cambian según el módulo seleccionado.</p>
@@ -818,5 +845,115 @@ startPractice();
  renderSpeak();showTab('exam');
 })();
 </script>
+
+<script>
+(function(){
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const REVIEW_KEY='aprendofrances_spaced_reviews_v1';
+ const HISTORY_KEY='aprendofrances_history_v1';
+ const PROGRESS_KEY='aprendofrances_progress_v1';
+ const LAB_KEY='aprendofrances_lab_v1';
+ const intervals=[1,3,7,14];
+ const titles={alphabet:'Alfabeto francés',greetings:'Saludos y despedidas',introductions:'Presentarse',pronouns:'Pronombres personales',verbs:'Verbos esenciales',numbers:'Los números',age:'La edad y los años',countries:'Países y nacionalidades',questions:'Preguntas básicas',articles:'Los artículos',gender:'Masculino y femenino',adjectives:'Adjetivos y descripciones',sentences:'Construir oraciones'};
+ const read=(k,fallback)=>{try{const v=JSON.parse(localStorage.getItem(k)||'null');return v==null?fallback:v}catch(e){return fallback}};
+ const write=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
+ const safeDate=s=>{const d=new Date(s);return Number.isNaN(d.getTime())?new Date():d};
+ let exam=[],at=0,points=0,locked=false,finished=false;
+ const clean=s=>String(s||'').toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’']/g,"'").replace(/[.!?¿¡,]/g,'').replace(/\s+/g,' ').trim();
+ const shuffle=a=>{const x=a.slice();for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]]}return x};
+ function getAllItems(){
+  const all=[];
+  try{Object.entries(practiceSets).forEach(([module,arr])=>(arr||[]).forEach(q=>{if(q&&q.fr&&q.es)all.push({fr:q.fr,es:q.es,module,pron:q.pron||''})}))}catch(e){}
+  try{letters.filter(x=>x[0]!=='Ñ').forEach(x=>all.push({fr:x[0],es:'Nombre de la letra: '+x[1],module:'alphabet',pron:x[2]||''}))}catch(e){}
+  const seen=new Set();return all.filter(x=>{const k=clean(x.fr)+'|'+clean(x.es);if(seen.has(k))return false;seen.add(k);return true});
+ }
+ function record(entry){
+  const history=read(HISTORY_KEY,[]);history.unshift({...entry,id:Date.now()+'-'+Math.random().toString(36).slice(2,7),date:new Date().toISOString()});write(HISTORY_KEY,history.slice(0,100));paintDashboard();
+ }
+ function paintDashboard(){
+  const p=read(PROGRESS_KEY,{}),h=read(HISTORY_KEY,[]),vals=Object.values(p);
+  const avg=vals.length?Math.round(vals.reduce((n,x)=>n+(Number(x.best)||0),0)/vals.length):0;
+  const stats=[['Módulos practicados',vals.length+' / 13'],['Promedio de mejores notas',avg+'%'],['Evaluaciones guardadas',h.length],['Última actividad',h.length?safeDate(h[0].date).toLocaleDateString('es-CO'):'Sin registros']];
+  const root=$('dashboardStats');root.innerHTML='';
+  stats.forEach(([a,b])=>{const c=document.createElement('article');c.className='vocab-card';const t=document.createElement('div');t.className='context';t.textContent=a;const v=document.createElement('div');v.className='progress-value';v.textContent=b;c.append(t,v);root.append(c)});
+  const hist=$('evaluationHistory');hist.innerHTML='';
+  if(!h.length)hist.textContent='Todavía no hay evaluaciones registradas. Completa un examen para comenzar tu historial.';
+  h.slice(0,12).forEach(x=>{const c=document.createElement('article');c.className='vocab-card';const t=document.createElement('strong');t.textContent=x.title;const v=document.createElement('div');v.className='progress-value';v.textContent=x.score+'%';const d=document.createElement('div');d.className='context';d.textContent=safeDate(x.date).toLocaleString('es-CO')+' · '+(x.correct||0)+'/'+(x.total||0)+' aciertos';c.append(t,v,d);hist.append(c)});
+  paintScheduled();
+ }
+ function paintScheduled(){
+  const root=$('scheduledReviews');if(!root)return;root.innerHTML='';
+  const due=read(REVIEW_KEY,{}),mistakes=read(LAB_KEY,[]),now=Date.now(),items=Array.isArray(mistakes)?mistakes:[];
+  items.forEach(q=>{const id=clean(q.fr)+'|'+clean(q.es);if(!due[id])due[id]={fr:q.fr,es:q.es,module:q.module||'greetings',step:0,dueAt:safeDate(q.when||new Date().toISOString()).getTime()+86400000,pron:q.pron||''}});
+  write(REVIEW_KEY,due);
+  const list=Object.entries(due).sort((a,b)=>a[1].dueAt-b[1].dueAt);
+  const pending=list.filter(([,v])=>v.dueAt<=now);
+  if(!list.length){root.textContent='Aún no tienes repasos pendientes. Las respuestas incorrectas aparecerán aquí automáticamente.';return}
+  list.forEach(([id,q])=>{
+   const c=document.createElement('article');c.className='vocab-card';
+   const fr=document.createElement('div');fr.className='french-word';fr.textContent=q.fr;
+   const es=document.createElement('div');es.className='translation';es.textContent=q.es;
+   const dueText=document.createElement('div');dueText.className='context';dueText.textContent=q.dueAt<=now?'Pendiente de repaso':'Próximo repaso: '+new Date(q.dueAt).toLocaleDateString('es-CO');
+   const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='🔊 Escuchar';
+   b.addEventListener('click',()=>{if(typeof speak==='function')speak(q.fr)});
+   const done=document.createElement('button');done.type='button';done.textContent='Ya lo repasé';
+   done.addEventListener('click',()=>{q.step=(q.step||0)+1;if(q.step>=intervals.length){delete due[id]}else{q.dueAt=Date.now()+intervals[q.step]*86400000}write(REVIEW_KEY,due);paintScheduled()});
+   c.append(fr,es,dueText,b,done);root.append(c);
+  });
+  if(!pending.length){const msg=document.createElement('p');msg.className='note';msg.textContent='No tienes repasos vencidos. Puedes adelantar alguno si deseas reforzarlo.';root.prepend(msg)}
+ }
+ function sourceQuestions(){
+  const src=getAllItems();if(!src.length)return [];
+  const pool=shuffle(src);return Array.from({length:30},(_,i)=>({...pool[i%pool.length],kind:i%3}));
+ }
+ function render(){
+  const q=exam[at];if(!q)return;
+  locked=false;$('cumulativeProgress').textContent='Pregunta '+(at+1)+' de '+exam.length;$('cumulativeScore').textContent='Aciertos: '+points;$('cumulativeBar').style.width=(at/exam.length*100)+'%';
+  $('cumulativeKind').textContent=['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];
+  $('cumulativePrompt').textContent=q.kind===1?'Escucha la expresión y selecciona su significado.':q.kind===2?q.es:q.fr;
+  $('cumulativeOptions').innerHTML='';$('cumulativeOptions').dataset.answer='';$('cumulativeInputWrap').hidden=q.kind!==2;$('cumulativeInput').value='';$('cumulativeFeedback').textContent='';$('cumulativeCheck').disabled=false;$('cumulativeNext').disabled=true;
+  if(q.kind!==2){
+   const distractors=shuffle(exam.filter(x=>x.es!==q.es).map(x=>x.es)).filter((v,i,a)=>a.indexOf(v)===i).slice(0,3);
+   shuffle([q.es,...distractors]).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(locked)return;$('cumulativeOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('cumulativeOptions').dataset.answer=v});$('cumulativeOptions').append(b)});
+  }
+ }
+ function start(){exam=sourceQuestions();at=0;points=0;finished=false;if(!exam.length){$('cumulativePrompt').textContent='No hay suficientes ejercicios disponibles.';return}$('cumulativeFeedback').textContent='';render()}
+ $('cumulativeStart').addEventListener('click',start);
+ $('cumulativeHear').addEventListener('click',()=>{if(exam[at]&&typeof speak==='function')speak(exam[at].fr)});
+ $('cumulativeCheck').addEventListener('click',()=>{
+  if(locked||!exam.length||finished)return;const q=exam[at],ans=q.kind===2?$('cumulativeInput').value:$('cumulativeOptions').dataset.answer;
+  if(!ans){$('cumulativeFeedback').textContent='Selecciona o escribe una respuesta antes de comprobar.';return}
+  const ok=q.kind===2?clean(ans)===clean(q.fr):ans===q.es;locked=true;if(ok)points++;
+  $('cumulativeFeedback').textContent=ok?'¡Correcto! '+q.fr+' — '+q.es:'Respuesta correcta: '+q.fr+' — '+q.es;
+  $('cumulativeFeedback').className='exercise-feedback '+(ok?'good':'bad');$('cumulativeScore').textContent='Aciertos: '+points;$('cumulativeCheck').disabled=true;$('cumulativeNext').disabled=false;
+  if(!ok){const list=read(LAB_KEY,[]);if(!list.some(x=>x.fr===q.fr&&x.es===q.es)){list.push({fr:q.fr,es:q.es,module:q.module,pron:q.pron,when:new Date().toISOString()});write(LAB_KEY,list.slice(-100))}}
+ });
+ $('cumulativeNext').addEventListener('click',()=>{
+  if(!locked)return;
+  if(at<exam.length-1){at++;render();return}
+  finished=true;const pct=Math.round(points/exam.length*100);$('cumulativeProgress').textContent='Examen terminado';$('cumulativeBar').style.width='100%';$('cumulativePrompt').textContent='Resultado final: '+points+' de '+exam.length+' ('+pct+'%).';$('cumulativeOptions').innerHTML='';$('cumulativeInputWrap').hidden=true;$('cumulativeKind').textContent='RESULTADO ACUMULATIVO';$('cumulativeFeedback').textContent=pct>=90?'Dominio excelente':pct>=75?'Nivel intermedio':pct>=50?'Nivel básico en desarrollo':'Principiante: conviene repasar';$('cumulativeCheck').disabled=true;$('cumulativeNext').disabled=true;
+  const p=read(PROGRESS_KEY,{}),old=p.cumulative||{best:0,attempts:0};p.cumulative={best:Math.max(old.best||0,pct),last:pct,attempts:(old.attempts||0)+1,updated:new Date().toISOString()};write(PROGRESS_KEY,p);
+  record({title:'Examen acumulativo',score:pct,correct:points,total:exam.length});
+  paintScheduled();
+ });
+ $('clearEvaluationHistory').addEventListener('click',()=>{if(confirm('¿Quieres borrar el historial de evaluaciones de este dispositivo?')){write(HISTORY_KEY,[]);paintDashboard()}});
+ function observeResult(id,marker,title){
+  const el=$(id);if(!el)return;let last='';
+  new MutationObserver(()=>{const value=el.textContent||'';if(value.includes(marker)&&value!==last){last=value;setTimeout(()=>{
+   const prompt=$(id==='examProgress'?'examPrompt':'exercisePrompt')?.textContent||'';
+   const m=prompt.match(/(\d+) de (\d+)/);if(!m)return;
+   const score=Math.round(Number(m[1])/Number(m[2])*100);record({title,score,correct:Number(m[1]),total:Number(m[2])});
+  },0)}if(!value.includes(marker))last=''}).observe(el,{childList:true,subtree:true,characterData:true});
+ }
+ observeResult('examProgress','Examen terminado','Examen de módulo: '+(document.getElementById('modulePicker')?.selectedOptions[0]?.textContent||'Módulo'));
+ observeResult('exerciseKind','RESULTADO FINAL','Práctica del módulo: '+(document.getElementById('modulePicker')?.selectedOptions[0]?.textContent||'Módulo'));
+ const picker=$('modulePicker');if(picker)picker.addEventListener('change',()=>{exam=[];finished=false});
+ const reviewObserver=new MutationObserver(()=>paintScheduled());
+ const reviewRoot=$('reviewList');if(reviewRoot)reviewObserver.observe(reviewRoot,{childList:true,subtree:true});
+ paintDashboard();
+})();
+</script>
+
 </body>
 </html>
