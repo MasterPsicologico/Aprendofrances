@@ -799,6 +799,14 @@ startPractice();
   rec.onerror=e=>{$('speakResult').textContent='No se pudo reconocer la voz ('+e.error+'). Revisa el permiso del micrófono y la conexión.'};
   rec.start();
  });
+ document.addEventListener('click',ev=>{
+  if(ev.target&&['checkChoice','checkTyped'].includes(ev.target.id)){
+   setTimeout(()=>{
+    const feedback=document.getElementById('exerciseFeedback');
+    if(feedback&&feedback.classList.contains('bad')&&typeof exerciseList!=='undefined'&&exerciseList[exerciseIndex])addReview(exerciseList[exerciseIndex]);
+   },0);
+  }
+ });
  function addReview(q){if(!q||!q.fr)return;if(!review.some(x=>x.fr===q.fr&&x.es===q.es)){review.push({fr:q.fr,es:q.es,pron:q.pron||'',module:key(),when:new Date().toISOString()});persistReview()}}
  function paintReview(){
   const root=$('reviewList');root.innerHTML='';
