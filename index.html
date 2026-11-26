@@ -55,6 +55,9 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <select id="modulePicker" aria-label="Seleccionar módulo de aprendizaje">
   <option value="alphabet">Módulo 1 — El alfabeto francés</option>
   <option value="greetings">Módulo 2 — Saludos y despedidas</option>
+  <option value="introductions">Módulo 3 — Presentarse</option>
+  <option value="pronouns">Módulo 4 — Pronombres personales</option>
+  <option value="verbs">Módulo 5 — Verbos esenciales: être y avoir</option>
  </select>
 </section>
 <section class="panel">
@@ -101,6 +104,32 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <section class="panel note">
   <strong>Consejo:</strong> en francés, «Bonjour» se utiliza durante el día para saludar. «Bonsoir» se utiliza al llegar la tarde o por la noche. «Bonne nuit» suele decirse al despedirse para ir a dormir.
  </section>
+</div>
+
+<div id="moduleIntroductions" class="module-view" hidden>
+ <section class="panel">
+  <h2 class="module-heading">Módulo 3: Presentarse</h2>
+  <p class="module-description">Aprende a decir tu nombre, preguntar cómo se llama otra persona, indicar de dónde eres y hablar de tu idioma.</p>
+ </section>
+ <section class="panel detail">
+  <div class="big">🙋</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Decir quién eres</h2><p>Escucha cada frase y repítela en voz alta. Primero aprende la frase completa y luego intenta decirla sin mirar.</p></div>
+  <button id="playIntroductions">▶ Escuchar la clase</button>
+ </section>
+ <section class="vocab-grid" id="introductionsGrid"></section>
+ <section class="panel note"><strong>Mini diálogo:</strong><p>— Bonjour ! Comment tu t’appelles ?</p><p>— Je m’appelle Oscar. Et toi ?</p><p>— Je m’appelle Marie. Enchantée !</p><p>Significa: Hola, ¿cómo te llamas? — Me llamo Óscar. ¿Y tú? — Me llamo Marie. ¡Encantada!</p><button class="secondary" id="playIntroDialogue">🔊 Escuchar diálogo</button></section>
+</div>
+<div id="modulePronouns" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 4: Pronombres personales</h2><p class="module-description">Conoce las palabras que usamos para decir yo, tú, él, ella, nosotros y ellos. Son la base para construir oraciones.</p></section>
+ <section class="panel detail"><div class="big">👥</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Los pronombres sujeto</h2><p>Escucha los pronombres y observa cuándo se utiliza cada uno.</p></div><button id="playPronouns">▶ Escuchar la clase</button></section>
+ <section class="vocab-grid" id="pronounsGrid"></section>
+ <section class="panel note"><strong>Importante:</strong> «tu» es informal (una persona); «vous» se utiliza para hablar formalmente con una persona o para dirigirse a varias personas. «On» se usa mucho en el francés cotidiano con el sentido de «nosotros».</section>
+</div>
+<div id="moduleVerbs" class="module-view" hidden>
+ <section class="panel"><h2 class="module-heading">Módulo 5: Verbos esenciales — être y avoir</h2><p class="module-description">Aprende dos verbos fundamentales: être (ser o estar) y avoir (tener). Escucha cada forma y su significado.</p></section>
+ <section class="panel detail"><div class="big">📘</div><div style="flex:1;min-width:180px"><h2>Clase 1 — Être: ser o estar</h2><p>Practica las formas del presente. Después encontrarás el verbo avoir.</p></div><button id="playVerbs">▶ Escuchar la clase</button></section>
+ <h3>Verbo être — ser o estar</h3><section class="vocab-grid" id="etreGrid"></section>
+ <h3>Verbo avoir — tener</h3><section class="vocab-grid" id="avoirGrid"></section>
+ <section class="panel note"><strong>Ejemplos:</strong><p>Je suis Oscar. — Soy Óscar.</p><p>Tu es ici. — Tú estás aquí.</p><p>J’ai un livre. — Tengo un libro.</p><p>Nous avons une maison. — Tenemos una casa.</p><button class="secondary" id="playVerbExamples">🔊 Escuchar ejemplos</button></section>
 </div>
 </main>
 <script>
@@ -197,6 +226,79 @@ $('playAll').addEventListener('click',async()=>{
 render();loadVoices();
 if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=loadVoices;
 
+
+const introductions = [
+ {fr:"Comment tu t’appelles ?",es:"¿Cómo te llamas?",pron:"ko-mán tü ta-pél",note:"Pregunta informal para conocer el nombre de alguien."},
+ {fr:"Comment vous appelez-vous ?",es:"¿Cómo se llama usted?",pron:"ko-mán vu za-ple vu",note:"Forma formal y educada."},
+ {fr:"Je m’appelle Oscar.",es:"Me llamo Óscar.",pron:"ʒə ma-pél os-kar",note:"Cambia Oscar por tu propio nombre."},
+ {fr:"Et toi ?",es:"¿Y tú?",pron:"e tuá",note:"Pregunta informal para devolver la pregunta."},
+ {fr:"Enchanté.",es:"Encantado.",pron:"an-shan-té",note:"Forma masculina; se escribe Enchantée si quien habla es mujer."},
+ {fr:"Enchantée.",es:"Encantada.",pron:"an-shan-té",note:"La pronunciación es igual que Enchanté."},
+ {fr:"Je suis colombien.",es:"Soy colombiano.",pron:"ʒə süi ko-lom-byan",note:"Forma masculina. Para una mujer: Je suis colombienne."},
+ {fr:"Je suis colombienne.",es:"Soy colombiana.",pron:"ʒə süi ko-lom-byén",note:"Forma femenina."},
+ {fr:"Je parle espagnol.",es:"Hablo español.",pron:"ʒə parl es-pa-ñol",note:"Para decir qué idioma hablas."},
+ {fr:"Je parle un peu français.",es:"Hablo un poco de francés.",pron:"ʒə parl an pö fran-sé",note:"Una frase útil cuando estás aprendiendo."},
+ {fr:"J’habite en Colombie.",es:"Vivo en Colombia.",pron:"ʒa-bit an ko-lom-bí",note:"Para indicar dónde vives."},
+ {fr:"J’apprends le français.",es:"Estoy aprendiendo francés.",pron:"ʒa-prán lə fran-sé",note:"Una frase importante para presentarte."}
+];
+const pronouns = [
+ {fr:"Je",es:"Yo",pron:"ʒə",note:"Se usa para hablar de uno mismo."},
+ {fr:"Tu",es:"Tú",pron:"tü",note:"Para hablar informalmente con una persona."},
+ {fr:"Il",es:"Él",pron:"il",note:"Pronombre masculino singular."},
+ {fr:"Elle",es:"Ella",pron:"el",note:"Pronombre femenino singular."},
+ {fr:"On",es:"Uno / nosotros (coloquial)",pron:"on",note:"Muy frecuente en conversaciones cotidianas."},
+ {fr:"Nous",es:"Nosotros / nosotras",pron:"nu",note:"Forma explícita de primera persona plural."},
+ {fr:"Vous",es:"Usted / ustedes / vosotros",pron:"vu",note:"Formal singular o plural."},
+ {fr:"Ils",es:"Ellos",pron:"il",note:"Grupo masculino o mixto."},
+ {fr:"Elles",es:"Ellas",pron:"el",note:"Grupo formado solo por mujeres."}
+];
+const etre = [
+ {fr:"Je suis",es:"Yo soy / estoy",pron:"ʒə süi",note:"Ejemplo: Je suis étudiant. — Soy estudiante."},
+ {fr:"Tu es",es:"Tú eres / estás",pron:"tü e",note:"Ejemplo: Tu es ici. — Estás aquí."},
+ {fr:"Il est",es:"Él es / está",pron:"il e",note:"Ejemplo: Il est français. — Él es francés."},
+ {fr:"Elle est",es:"Ella es / está",pron:"el e",note:"Ejemplo: Elle est contente. — Ella está contenta."},
+ {fr:"Nous sommes",es:"Nosotros somos / estamos",pron:"nu som",note:"Ejemplo: Nous sommes prêts. — Estamos listos."},
+ {fr:"Vous êtes",es:"Usted es / está; ustedes son / están",pron:"vu zet",note:"Ejemplo: Vous êtes ici. — Usted está aquí."},
+ {fr:"Ils sont",es:"Ellos son / están",pron:"il son",note:"Ejemplo: Ils sont amis. — Ellos son amigos."},
+ {fr:"Elles sont",es:"Ellas son / están",pron:"el son",note:"Ejemplo: Elles sont ici. — Ellas están aquí."}
+];
+const avoir = [
+ {fr:"J’ai",es:"Yo tengo",pron:"ʒe",note:"Ejemplo: J’ai un livre. — Tengo un libro."},
+ {fr:"Tu as",es:"Tú tienes",pron:"tü a",note:"Ejemplo: Tu as un stylo. — Tienes un bolígrafo."},
+ {fr:"Il a",es:"Él tiene",pron:"il a",note:"Ejemplo: Il a un chien. — Tiene un perro."},
+ {fr:"Elle a",es:"Ella tiene",pron:"el a",note:"Ejemplo: Elle a une sœur. — Tiene una hermana."},
+ {fr:"Nous avons",es:"Nosotros tenemos",pron:"nu za-von",note:"Ejemplo: Nous avons une maison. — Tenemos una casa."},
+ {fr:"Vous avez",es:"Usted tiene / ustedes tienen",pron:"vu za-vé",note:"Ejemplo: Vous avez un livre. — Tiene un libro."},
+ {fr:"Ils ont",es:"Ellos tienen",pron:"il zon",note:"Ejemplo: Ils ont deux enfants. — Tienen dos hijos."},
+ {fr:"Elles ont",es:"Ellas tienen",pron:"el zon",note:"Ejemplo: Elles ont des amis. — Tienen amigos."}
+];
+function renderCards(items,gridId){
+ const grid=$(gridId);grid.innerHTML='';
+ items.forEach(item=>{
+  const card=document.createElement('article');card.className='vocab-card';
+  const word=document.createElement('div');word.className='french-word';word.textContent=item.fr;
+  const translation=document.createElement('div');translation.className='translation';translation.textContent=item.es;
+  const pron=document.createElement('div');pron.className='pronunciation';pron.textContent='Pronunciación aproximada: '+item.pron;
+  const note=document.createElement('div');note.className='context';note.textContent=item.note;
+  const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='🔊 Escuchar';btn.addEventListener('click',()=>speak(item.fr));
+  card.append(word,translation,pron,note,btn);grid.appendChild(card);
+ });
+}
+function speakSequence(items,statusText,doneText){
+ if(!('speechSynthesis'in window))return;
+ speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
+ $('status').textContent=statusText;
+ let index=0;
+ function next(){
+  if(token!==queueToken)return;
+  if(index>=items.length){$('status').textContent=doneText;return}
+  const u=new SpeechSynthesisUtterance(items[index++]);
+  if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';
+  u.rate=rate;u.onend=next;u.onerror=next;speechSynthesis.speak(u);
+ }
+ next();
+}
+
 const greetings = [
  {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr',note:'Saludo habitual durante el día.'},
  {fr:'Salut',es:'Hola / Chao (informal)',pron:'sa-lü',note:'Se utiliza con amigos, familiares o personas de confianza.'},
@@ -227,13 +329,14 @@ function renderGreetings(){
  });
 }
 function applySelectedModule(){
- const isAlphabet=$('modulePicker').value==='alphabet';
- $('moduleAlphabet').hidden=!isAlphabet;
- $('moduleGreetings').hidden=isAlphabet;
- $('playAll').textContent=isAlphabet?'▶ Escuchar alfabeto':'▶ Escuchar saludos';
- queueToken++;
- if('speechSynthesis'in window)speechSynthesis.cancel();
- $('status').textContent=isAlphabet?'Módulo 1 activo: alfabeto francés.':'Módulo 2 activo: saludos y despedidas.';
+ const key=$('modulePicker').value;
+ const ids={alphabet:'moduleAlphabet',greetings:'moduleGreetings',introductions:'moduleIntroductions',pronouns:'modulePronouns',verbs:'moduleVerbs'};
+ Object.entries(ids).forEach(([name,id])=>$(id).hidden=name!==key);
+ const labels={alphabet:'Módulo 1: alfabeto francés.',greetings:'Módulo 2: saludos y despedidas.',introductions:'Módulo 3: presentarse.',pronouns:'Módulo 4: pronombres personales.',verbs:'Módulo 5: verbos esenciales être y avoir.'};
+ const playLabels={alphabet:'▶ Escuchar alfabeto',greetings:'▶ Escuchar saludos',introductions:'▶ Escuchar presentaciones',pronouns:'▶ Escuchar pronombres',verbs:'▶ Escuchar verbos'};
+ $('playAll').textContent=playLabels[key]||'▶ Escuchar módulo';
+ queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
+ $('status').textContent=labels[key]||'Módulo seleccionado.';
 }
 $('modulePicker').addEventListener('change',applySelectedModule);
 $('playGreetings').addEventListener('click',async()=>{
@@ -250,6 +353,22 @@ $('playGreetings').addEventListener('click',async()=>{
  if(token===queueToken)$('status').textContent='¡Clase terminada! Puedes repetir cualquier expresión.';
 });
 renderGreetings();
+renderCards(introductions,'introductionsGrid');
+renderCards(pronouns,'pronounsGrid');
+renderCards(etre,'etreGrid');
+renderCards(avoir,'avoirGrid');
+$('playIntroductions').addEventListener('click',()=>speakSequence(introductions.map(x=>x.fr),'Reproduciendo la clase de presentaciones…','Clase de presentaciones terminada.'));
+$('playPronouns').addEventListener('click',()=>speakSequence(pronouns.map(x=>x.fr),'Reproduciendo los pronombres…','Clase de pronombres terminada.'));
+$('playVerbs').addEventListener('click',()=>speakSequence([...etre,...avoir].map(x=>x.fr),'Reproduciendo être y avoir…','Clase de verbos terminada.'));
+$('playIntroDialogue').addEventListener('click',()=>speakSequence(["Bonjour !","Comment tu t’appelles ?","Je m’appelle Oscar. Et toi ?","Je m’appelle Marie. Enchantée !"],'Reproduciendo el diálogo…','Diálogo terminado.'));
+$('playVerbExamples').addEventListener('click',()=>speakSequence(["Je suis Oscar.","Tu es ici.","J’ai un livre.","Nous avons une maison."],'Reproduciendo ejemplos…','Ejemplos terminados.'));
+$('playAll').addEventListener('click',()=>{
+ const key=$('modulePicker').value;
+ if(key==='alphabet')return;
+ const groups={greetings:greetings.map(x=>x.fr),introductions:introductions.map(x=>x.fr),pronouns:pronouns.map(x=>x.fr),verbs:[...etre,...avoir].map(x=>x.fr)};
+ const names={greetings:'saludos',introductions:'presentaciones',pronouns:'pronombres',verbs:'verbos être y avoir'};
+ if(groups[key])speakSequence(groups[key],'Reproduciendo '+names[key]+'…','Reproducción del módulo terminada.');
+});
 applySelectedModule();
 
 </script>
