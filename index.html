@@ -1083,14 +1083,22 @@ const save=x=>{try{localStorage.setItem(DB,JSON.stringify(x))}catch(e){}};
 let currentLevel='A2',currentModule=null,quiz=[],qi=0,score=0,locked=false,quizMode='module';
 function certs(){const s=state(),root=$('curriculumCertificates');root.innerHTML='';let a1Score=0,a1Passed=false;try{const h=JSON.parse(localStorage.getItem('aprendofrances_history_v1')||'[]');const names=['Alfabeto francés','Saludos y despedidas','Presentarse','Pronombres personales','Verbos esenciales','Los números','La edad y los años','Países y nacionalidades','Preguntas básicas','Los artículos','Masculino y femenino','Adjetivos y descripciones','Construir oraciones'];a1Passed=names.every((name,i)=>h.some(x=>String(x.title||'').startsWith('Examen de módulo:')&&Number((String(x.title).match(/Módulo\\s+(\\d+)/i)||[])[1])===i+1&&Number(x.score)>=80));const cum=h.filter(x=>x.title==='Examen acumulativo');a1Score=cum.reduce((n,x)=>Math.max(n,Number(x.score)||0),0);a1Passed=a1Passed&&a1Score>=80}catch(e){}['A1','A2','B1','B2','C1','C2'].forEach(l=>{const c=document.createElement('article');c.className='vocab-card';const t=document.createElement('strong');t.textContent=l+' · '+(levels[l]?.name||'Fundamentos A1');const v=document.createElement('div');v.className='progress-value';const passed=l==='A1'?a1Passed:!!s[l]?.certified;const pct=l==='A1'?a1Score:s[l]?.score;v.textContent=passed?'🏆 CERTIFICADO · '+pct+'%':l==='A1'?'Contenido inicial · certificación pendiente':'Pendiente de certificar';if(passed){c.style.border='2px solid #c99a20';c.style.background='linear-gradient(135deg,#fff9df,#fff)';v.style.color='#946900'}c.append(t,v);root.append(c)})}
 function renderModules(){
- const data=levels[currentLevel],root=$('curriculumModules');root.innerHTML='';
+ const root=$('curriculumModules');root.innerHTML='';
+ if(currentLevel==='A1'){
+  const names=['El alfabeto francés','Saludos y despedidas','Presentarse','Pronombres personales','Verbos esenciales: être y avoir','Los números','La edad y los años','Países y nacionalidades','Preguntas básicas','Artículos definidos e indefinidos','Masculino y femenino','Adjetivos y descripciones','Construir oraciones'];
+  const keys=['alphabet','greetings','introductions','pronouns','verbs','numbers','age','countries','questions','articles','gender','adjectives','sentences'];
+  names.forEach((name,i)=>{const c=document.createElement('article');c.className='vocab-card';c.style.cursor='pointer';const t=document.createElement('strong');t.textContent=(i+1)+'. '+name;const d=document.createElement('div');d.className='context';d.textContent='Contenido A1 existente · acceso libre';c.append(t,d);c.addEventListener('click',()=>{const picker=$('modulePicker');picker.value=keys[i];picker.dispatchEvent(new Event('change'));$('moduleAlphabet').scrollIntoView({behavior:'smooth',block:'start'})});root.append(c)});
+  $('curriculumLessonTitle').textContent='Nivel A1 · Fundamentos';
+  $('curriculumLessonGoal').textContent='Los 13 módulos A1 se estudian en el selector original de clases. Selecciona cualquiera de las tarjetas para abrir su contenido. La certificación A1 se calcula con los 13 exámenes de módulo y el examen acumulativo del panel de seguimiento.';
+  $('curriculumLessonGrammar').textContent='';$('curriculumLessonItems').innerHTML='';
+  $('curriculumStartQuiz').disabled=true;$('curriculumCertify').disabled=true;$('curriculumQuiz').hidden=true;return;
+ }
+ const data=levels[currentLevel];
  data.modules.forEach((m,i)=>{const c=document.createElement('article');c.className='vocab-card';c.style.cursor='pointer';const t=document.createElement('strong');t.textContent=(i+1)+'. '+m[0];const d=document.createElement('div');d.className='context';d.textContent=m[1];const st=state(),done=!!st[currentLevel]?.modules?.[i];const v=document.createElement('div');v.className='progress-value';v.textContent=done?'⭐ Módulo aprobado':'Clase disponible';if(done)v.style.color='#946900';c.append(t,d,v);c.addEventListener('click',()=>openModule(i));root.append(c)});
  $('curriculumLessonTitle').textContent='Elige cualquier módulo de '+currentLevel;
  $('curriculumLessonGoal').textContent=data.desc;
- $('curriculumLessonGrammar').textContent='';
- $('curriculumLessonItems').innerHTML='';
- $('curriculumStartQuiz').disabled=true;
- $('curriculumQuiz').hidden=true;
+ $('curriculumLessonGrammar').textContent='';$('curriculumLessonItems').innerHTML='';
+ $('curriculumStartQuiz').disabled=true;$('curriculumCertify').disabled=false;$('curriculumQuiz').hidden=true;
 }
 function openModule(i){
  currentModule=i;const m=levels[currentLevel].modules[i];
