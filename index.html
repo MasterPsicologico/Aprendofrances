@@ -60,6 +60,7 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 .exercise-feedback.good{color:#13795b}.exercise-feedback.bad{color:#a52d35}
 @media(max-width:480px){.exercise-card{padding:13px}.exercise-card h3{font-size:19px}}
 
+#learningProgress .vocab-card{min-height:110px}#learningProgress .progress-value{font-size:22px;font-weight:800;color:var(--blue)}#resetProgress{margin-top:4px}
 </style>
 </head>
 <body>
@@ -208,6 +209,13 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <div class="vocab-grid" id="sentencesGrid"></div>
  <section class="panel note"><strong>Estructura básica:</strong><p>Sujeto + verbo + complemento.</p><p>Je parle français. — Yo hablo francés.</p><p>J’habite au Canada. — Vivo en Canadá.</p><p>Je suis étudiant. — Soy estudiante.</p></section>
 </div>
+<section class="panel" id="learningProgress">
+ <h2 class="module-heading">📈 Mi progreso de aprendizaje</h2>
+ <p class="module-description">Tus resultados se guardan en este dispositivo para que puedas continuar cuando regreses.</p>
+ <div id="progressSummary" class="note" aria-live="polite">Todavía no has completado ninguna práctica. ¡Comienza con el módulo que estás estudiando!</div>
+ <div id="progressList" class="vocab-grid" style="margin-top:12px"></div>
+ <div class="practice-actions"><button type="button" class="secondary" id="resetProgress">Borrar mi progreso guardado</button></div>
+</section>
 <section class="panel practice" id="practicePanel">
  <h2 class="module-heading">🎯 Zona de práctica interactiva</h2>
  <p class="module-description">Practica lo que acabas de estudiar. Puedes responder, comprobar, escuchar la frase y avanzar. Las preguntas cambian según el módulo seleccionado.</p>
@@ -589,7 +597,8 @@ function getPracticeItems(){
 }
 function startPractice(){
  const source=getPracticeItems();exerciseList=[];
- for(let i=0;i<10;i++){const item=source[i%source.length];exerciseList.push({...item,kind:i%3});}
+ const pool=source.slice().sort(()=>Math.random()-.5);
+ for(let i=0;i<15;i++){const item=pool[i%pool.length];exerciseList.push({...item,kind:i%3});}
  exerciseIndex=0;exerciseScore=0;renderExercise();
 }
 function renderExercise(){
@@ -639,6 +648,50 @@ $('restartPractice').addEventListener('click',startPractice);
 $('modulePicker').addEventListener('change',startPractice);
 startPractice();
 
+</script>
+<script>
+(function(){
+ const STORE_KEY='aprendofrances_progress_v1';
+ const titles={
+ alphabet:'Alfabeto francés',greetings:'Saludos y despedidas',introductions:'Presentarse',pronouns:'Pronombres personales',verbs:'Verbos esenciales',numbers:'Los números',age:'La edad y los años',countries:'Países y nacionalidades',questions:'Preguntas básicas',articles:'Los artículos',gender:'Masculino y femenino',adjectives:'Adjetivos y descripciones',sentences:'Construir oraciones'
+ };
+ function readProgress(){try{return JSON.parse(localStorage.getItem(STORE_KEY)||'{}')}catch(e){return {}}}
+ function paintProgress(){
+  const data=readProgress(),entries=Object.entries(data);
+  const done=entries.length,avg=done?Math.round(entries.reduce((n,[,v])=>n+(v.best||0),0)/done):0;
+  const summary=document.getElementById('progressSummary'),list=document.getElementById('progressList');
+  if(!summary||!list)return;
+  summary.textContent=done?'Módulos practicados: '+done+' de 13 · Mejor promedio: '+avg+'%':'Todavía no has completado ninguna práctica. ¡Comienza con el módulo que estás estudiando!';
+  list.innerHTML='';
+  Object.entries(titles).forEach(([key,title])=>{
+   const v=data[key];if(!v)return;
+   const card=document.createElement('article');card.className='vocab-card';
+   const h=document.createElement('strong');h.textContent=title;
+   const score=document.createElement('div');score.className='progress-value';score.textContent=(v.best||0)+'%';
+   const detail=document.createElement('div');detail.className='context';detail.textContent='Último resultado: '+(v.last||0)+'% · Intentos: '+(v.attempts||0);
+   card.append(h,score,detail);list.appendChild(card);
+  });
+ }
+ function saveResult(){
+  const key=document.getElementById('modulePicker')?.value||'alphabet';
+  const text=document.getElementById('exerciseFeedback')?.textContent||'';
+  const match=text.match(/Puntuación:\s*(\d+)%/);
+  const prompt=document.getElementById('exercisePrompt')?.textContent||'';
+  const scoreMatch=prompt.match(/(\d+) de (\d+)/);
+  if(!match&&!scoreMatch)return;
+  const pct=match?Number(match[1]):Math.round((Number(scoreMatch[1])/Number(scoreMatch[2]))*100);
+  const data=readProgress(),old=data[key]||{best:0,attempts:0};
+  data[key]={best:Math.max(old.best,pct),last:pct,attempts:old.attempts+1,updated:new Date().toISOString()};
+  try{localStorage.setItem(STORE_KEY,JSON.stringify(data))}catch(e){}
+  paintProgress();
+ }
+ document.addEventListener('DOMContentLoaded',paintProgress);
+ const next=document.getElementById('nextExercise');
+ if(next)next.addEventListener('click',()=>{setTimeout(()=>{if(document.getElementById('exerciseKind')?.textContent==='RESULTADO FINAL')saveResult()},0)});
+ const reset=document.getElementById('resetProgress');
+ if(reset)reset.addEventListener('click',()=>{if(confirm('¿Quieres borrar los resultados guardados en este dispositivo?')){localStorage.removeItem(STORE_KEY);paintProgress()}});
+ paintProgress();
+})();
 </script>
 </body>
 </html>
