@@ -62,6 +62,43 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 
 #learningProgress .vocab-card{min-height:110px}#learningProgress .progress-value{font-size:22px;font-weight:800;color:var(--blue)}#resetProgress{margin-top:4px}
 .lab-pane{margin-top:18px;padding-top:12px;border-top:1px solid var(--line)}.lab-pane[hidden]{display:none!important}#advancedPracticeLab [data-lab-tab].active{background:var(--blue);color:white}#orderChoices button{background:#edf3ff;color:#17243b;border:1px solid #cbd8ef}#orderAnswer{font-weight:750;color:var(--blue)}#dictationInput,#examInput{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin:10px 0}.lab-pane h3{margin:12px 0 6px}
+
+/* Navegación compacta por secciones */
+:root{--navy:#10244a;--violet:#6654d9;--gold:#d5a62e}
+body{background:linear-gradient(180deg,#f4f7ff 0,#f8faff 42%,#f5f7fc 100%)}
+header{padding:25px 18px 30px;background:radial-gradient(circle at 85% 10%,#648cf2 0,transparent 34%),linear-gradient(125deg,#101f49,#244eaa 58%,#4b73d6)}
+header .wrap{max-width:1120px}
+main.wrap{max-width:1120px;padding-top:14px}
+#appNavigation{position:sticky;top:0;z-index:50;margin:0 -2px 18px;padding:12px 14px;border:1px solid #dce5fa;border-radius:18px;background:rgba(255,255,255,.94);backdrop-filter:blur(16px);box-shadow:0 12px 35px #183b7814}
+#appNavigation .nav-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+#appNavigation .nav-brand{font-size:13px;font-weight:850;letter-spacing:.08em;color:#53658c;text-transform:uppercase}
+#appNavigation .nav-current{font-size:12px;color:#7886a0}
+#appNavigation .nav-selects{display:grid;grid-template-columns:1fr;gap:8px}
+#appNavigation label{display:block;font-size:11px;font-weight:800;color:#687895;margin:0 0 5px 2px;letter-spacing:.04em;text-transform:uppercase}
+#appNavigation select{width:100%;min-height:46px;border:1px solid #d8e1f2;border-radius:13px;padding:10px 42px 10px 13px;font-size:15px;font-weight:750;color:#1d315c;background:#f8faff}
+#appNavigation select:focus{outline:3px solid #dce6ff;border-color:#5979d6}
+#appNavigation .nav-sub{display:none}
+#appNavigation .nav-sub.visible{display:block}
+.app-view{animation:sectionIn .22s ease both;min-width:0}
+.app-view[hidden]{display:none!important}
+.app-view>.panel:first-child{margin-top:0}
+#appClasses .module-select{border:0;padding:0 2px 12px;background:transparent;box-shadow:none;margin-bottom:4px}
+#appClasses .module-select label{font-size:13px;color:#64738e}
+#appClasses .module-select select{flex:1;min-width:0;max-width:none;padding:13px;border-radius:13px;font-weight:700}
+#appClasses .voice-panel{background:linear-gradient(135deg,#fff,#f1f5ff);border-color:#dce5fb}
+#appClasses .controls{gap:10px}
+#appClasses .controls label{margin:0}
+#appClasses .controls select{margin:0}
+#appClasses .controls input{max-width:115px}
+.app-view .panel{border-radius:19px;box-shadow:0 8px 26px #203d7110;border-color:#e2e9f5}
+.app-view .vocab-card{border-radius:16px;box-shadow:0 5px 16px #203d7109}
+#appAlphabet .grid{gap:12px}
+#appAlphabet .tile{border-radius:17px;box-shadow:0 5px 18px #1d3c760c}
+#appAlphabet .tile:active{transform:scale(.98)}
+#appNavigation~.app-view h2{letter-spacing:-.025em}
+@keyframes sectionIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(min-width:640px){#appNavigation{padding:14px 18px}#appNavigation .nav-selects{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:end}#appNavigation .nav-top{margin-bottom:11px}}
+@media(max-width:480px){header{padding:22px 16px 25px}main.wrap{padding:12px 12px 30px}#appNavigation{margin-bottom:13px;padding:11px;border-radius:16px}#appNavigation .nav-current{display:none}#appClasses .controls{display:grid;grid-template-columns:1fr 1fr;align-items:center}#appClasses .controls label{font-size:12px}#appClasses .controls button{width:100%;padding:10px 8px}#appClasses .controls input{width:100%;max-width:none;margin:0}#appClasses .controls select{width:100%}}
 </style>
 </head>
 <body>
@@ -1153,5 +1190,75 @@ certs();renderModules();
 })();
 </script>
 
+
+<script>
+(function(){
+ 'use strict';
+ const main=document.querySelector('main.wrap');
+ if(!main||document.getElementById('appNavigation'))return;
+ const byId=id=>document.getElementById(id);
+ const makeView=(id,title,description)=>{const el=document.createElement('section');el.id=id;el.className='app-view';el.setAttribute('aria-label',title);el.dataset.title=title;el.dataset.description=description||'';el.hidden=true;return el};
+ const alphabet=makeView('appAlphabet','Abecedario','Aprende y escucha las letras del francés.');
+ const classes=makeView('appClasses','Clases','Selecciona cualquiera de tus clases y estudia a tu ritmo.');
+ const lab=makeView('appLab','Laboratorio','Exámenes, dictados, orden de palabras y práctica de pronunciación.');
+ const progress=makeView('appProgress','Mi progreso','Consulta tus resultados y avances.');
+ const tracking=makeView('appTracking','Seguimiento','Repasos programados, historial y examen acumulativo.');
+ const practice=makeView('appPractice','Práctica interactiva','Ejercicios del módulo seleccionado.');
+ const route=makeView('appRoute','Ruta A1–C2','Explora libremente todos los niveles y sus módulos.');
+ const nav=document.createElement('section');nav.id='appNavigation';nav.innerHTML=
+  '<div class="nav-top"><span class="nav-brand">🇫🇷 Tu espacio de francés</span><span class="nav-current" id="navCurrent">Abecedario · Inicio</span></div>'+
+  '<div class="nav-selects"><div><label for="sectionPicker">¿Qué quieres estudiar?</label><select id="sectionPicker" aria-label="Seleccionar sección"><option value="alphabet">🔤 Abecedario</option><option value="classes">📚 Clases A1</option><option value="lab">🎓 Laboratorio de práctica</option><option value="practice">✍️ Práctica interactiva</option><option value="progress">📈 Mi progreso</option><option value="tracking">🗓️ Seguimiento e historial</option><option value="route">🏆 Ruta completa A1–C2</option></select></div>'+
+  '<div class="nav-sub" id="classPickerWrap"><label for="modulePicker">Elige una clase</label></div></div>';
+ const children=[...main.children];
+ const pickerPanel=children.find(x=>x.querySelector&&x.querySelector('#modulePicker'));
+ const voicePanel=children.find(x=>x.querySelector&&x.querySelector('#voice'));
+ const alphabetView=byId('moduleAlphabet');
+ if(!pickerPanel||!voicePanel||!alphabetView) return;
+ const labPanel=byId('advancedPracticeLab'),progressPanel=byId('learningProgress'),trackingPanel=byId('learningDashboard'),practicePanel=byId('practicePanel'),routePanel=byId('fullCurriculum');
+ main.insertBefore(nav,main.firstChild);
+ const pickerWrap=byId('classPickerWrap');pickerWrap.appendChild(pickerPanel);
+ classes.appendChild(pickerPanel);
+ const voicePanelClass=voicePanel;voicePanelClass.classList.add('voice-panel');
+ classes.appendChild(voicePanelClass);
+ alphabet.appendChild(alphabetView);
+ const note=alphabetView.querySelector('.note');if(note)note.hidden=true;
+ const moduleIds=['moduleGreetings','moduleIntroductions','modulePronouns','moduleVerbs','moduleNumbers','moduleAge','moduleCountries','moduleQuestions','moduleArticles','moduleGender','moduleAdjectives','moduleSentences'];
+ moduleIds.forEach(id=>{const el=byId(id);if(el)classes.appendChild(el)});
+ const status=byId('status');if(status){const statusParent=status.closest('.panel');if(statusParent&&statusParent.parentElement===classes){}}
+ if(labPanel)lab.appendChild(labPanel);
+ if(progressPanel)progress.appendChild(progressPanel);
+ if(trackingPanel)tracking.appendChild(trackingPanel);
+ if(practicePanel)practice.appendChild(practicePanel);
+ if(routePanel)route.appendChild(routePanel);
+ [alphabet,classes,lab,practice,progress,tracking,route].forEach(v=>main.appendChild(v));
+ const picker=byId('modulePicker');
+ const sectionPicker=byId('sectionPicker');
+ const classWrap=byId('classPickerWrap');
+ const views={alphabet,classes,lab,practice,progress,tracking,route};
+ const labels={alphabet:'Abecedario · Inicio',classes:'Clases · Contenido A1',lab:'Laboratorio · Herramientas',practice:'Práctica · Ejercicios',progress:'Mi progreso · Resultados',tracking:'Seguimiento · Repasos e historial',route:'Ruta completa · A1 a C2'};
+ function showSection(key){
+  if(!views[key])key='alphabet';
+  Object.entries(views).forEach(([k,v])=>{v.hidden=k!==key});
+  classWrap.classList.toggle('visible',key==='classes');
+  byId('navCurrent').textContent=labels[key];
+  sectionPicker.value=key;
+  if(key==='classes'&&picker){const target=byId('module'+picker.value.charAt(0).toUpperCase()+picker.value.slice(1));if(target)target.hidden=false}
+  window.scrollTo({top:0,behavior:'smooth'});
+ }
+ sectionPicker.addEventListener('change',()=>showSection(sectionPicker.value));
+ if(picker){
+  picker.addEventListener('change',()=>{
+   moduleIds.forEach(id=>{const el=byId(id);if(el)el.hidden=true});
+   const key=picker.value;
+   const target=byId('module'+key.charAt(0).toUpperCase()+key.slice(1));
+   if(target)target.hidden=false;
+   if(key==='alphabet'){showSection('alphabet')}else{showSection('classes')}
+  });
+ }
+ const originalStart=byId('curriculumModules');
+ if(originalStart){originalStart.addEventListener('click',e=>{const card=e.target.closest('.vocab-card');if(card&&sectionPicker.value!=='route')showSection('route')})}
+ showSection('alphabet');
+})();
+</script>
 </body>
 </html>
