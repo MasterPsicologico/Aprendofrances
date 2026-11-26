@@ -872,7 +872,7 @@ startPractice();
   const history=read(HISTORY_KEY,[]);history.unshift({...entry,id:Date.now()+'-'+Math.random().toString(36).slice(2,7),date:new Date().toISOString()});write(HISTORY_KEY,history.slice(0,100));paintDashboard();
  }
  function paintDashboard(){
-  const p=read(PROGRESS_KEY,{}),h=read(HISTORY_KEY,[]),vals=Object.values(p);
+  const p=read(PROGRESS_KEY,{}),h=read(HISTORY_KEY,[]),vals=Object.entries(p).filter(([k])=>k!=='cumulative').map(([,v])=>v);
   const avg=vals.length?Math.round(vals.reduce((n,x)=>n+(Number(x.best)||0),0)/vals.length):0;
   const stats=[['Módulos practicados',vals.length+' / 13'],['Promedio de mejores notas',avg+'%'],['Evaluaciones guardadas',h.length],['Última actividad',h.length?safeDate(h[0].date).toLocaleDateString('es-CO'):'Sin registros']];
   const root=$('dashboardStats');root.innerHTML='';
@@ -938,16 +938,16 @@ startPractice();
   paintScheduled();
  });
  $('clearEvaluationHistory').addEventListener('click',()=>{if(confirm('¿Quieres borrar el historial de evaluaciones de este dispositivo?')){write(HISTORY_KEY,[]);paintDashboard()}});
- function observeResult(id,marker,title){
+ function observeResult(id,marker,titleFn){
   const el=$(id);if(!el)return;let last='';
   new MutationObserver(()=>{const value=el.textContent||'';if(value.includes(marker)&&value!==last){last=value;setTimeout(()=>{
    const prompt=$(id==='examProgress'?'examPrompt':'exercisePrompt')?.textContent||'';
    const m=prompt.match(/(\d+) de (\d+)/);if(!m)return;
-   const score=Math.round(Number(m[1])/Number(m[2])*100);record({title,score,correct:Number(m[1]),total:Number(m[2])});
+   const score=Math.round(Number(m[1])/Number(m[2])*100);record({title:typeof titleFn==='function'?titleFn():titleFn,score,correct:Number(m[1]),total:Number(m[2])});
   },0)}if(!value.includes(marker))last=''}).observe(el,{childList:true,subtree:true,characterData:true});
  }
- observeResult('examProgress','Examen terminado','Examen de módulo: '+(document.getElementById('modulePicker')?.selectedOptions[0]?.textContent||'Módulo'));
- observeResult('exerciseKind','RESULTADO FINAL','Práctica del módulo: '+(document.getElementById('modulePicker')?.selectedOptions[0]?.textContent||'Módulo'));
+ observeResult('examProgress','Examen terminado',()=> 'Examen de módulo: '+(document.getElementById('modulePicker')?.selectedOptions[0]?.textContent||'Módulo'));
+ observeResult('exerciseKind','RESULTADO FINAL',()=> 'Práctica del módulo: '+(document.getElementById('modulePicker')?.selectedOptions[0]?.textContent||'Módulo'));
  const picker=$('modulePicker');if(picker)picker.addEventListener('change',()=>{exam=[];finished=false});
  const reviewObserver=new MutationObserver(()=>paintScheduled());
  const reviewRoot=$('reviewList');if(reviewRoot)reviewObserver.observe(reviewRoot,{childList:true,subtree:true});
