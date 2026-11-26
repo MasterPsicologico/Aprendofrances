@@ -254,6 +254,13 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
  <h2 class="module-heading">🗓️ Seguimiento, repasos e historial</h2>
  <p class="module-description">Consulta tus avances, revisa a tiempo las palabras difíciles y conserva un historial de tus evaluaciones en este dispositivo.</p>
  <div class="vocab-grid" id="dashboardStats" style="margin-top:12px"></div>
+ <div class="exercise-card" id="levelGate" style="margin-top:14px">
+  <h3>🔐 Diagnóstico para desbloquear el nivel A2</h3>
+  <p class="note">El nivel siguiente no se desbloquea por tiempo ni por completar clases. Debes demostrar dominio de los 13 módulos A1 y aprobar el examen acumulativo.</p>
+  <div id="levelGateStatus" class="note" aria-live="polite">Calculando tus resultados…</div>
+  <div id="levelGateChecks" class="vocab-grid" style="margin-top:10px"></div>
+  <p class="note">Requisito interno de esta aplicación: mínimo 80% en cada examen de módulo y 80% en el examen acumulativo. Es una prueba de avance didáctica, no equivale a una certificación oficial ni mide por sí sola toda tu expresión oral.</p>
+ </div>
  <div class="exercise-card" style="margin-top:14px">
   <h3>🏆 Examen acumulativo</h3>
   <p class="note">Una evaluación de 30 preguntas que combina los módulos estudiados. El resultado se guarda en tu historial y en el progreso general.</p>
@@ -871,6 +878,35 @@ startPractice();
  function record(entry){
   const history=read(HISTORY_KEY,[]);history.unshift({...entry,id:Date.now()+'-'+Math.random().toString(36).slice(2,7),date:new Date().toISOString()});write(HISTORY_KEY,history.slice(0,100));paintDashboard();
  }
+ function paintLevelGate(){
+  const status=$('levelGateStatus'),root=$('levelGateChecks');if(!status||!root)return;
+  const history=read(HISTORY_KEY,[]);
+  const moduleNames=Object.values(titles);
+  const bestByModule=moduleNames.map((name,index)=>{
+   const prefix='Examen de módulo:';
+   const matches=history.filter(x=>String(x.title||'').startsWith(prefix)&&String(x.title||'').includes(name));
+   return {name,score:matches.length?Math.max(...matches.map(x=>Number(x.score)||0)):null};
+  });
+  const cumulative=history.filter(x=>x.title==='Examen acumulativo').reduce((best,x)=>Math.max(best,Number(x.score)||0),0);
+  const passed=bestByModule.filter(x=>x.score!==null&&x.score>=80).length;
+  const allModules=passed===moduleNames.length;
+  const cumulativePassed=cumulative>=80;
+  const unlocked=allModules&&cumulativePassed;
+  status.textContent=unlocked?'¡Requisitos cumplidos! Has superado el diagnóstico interno A1 y puedes pasar al nivel A2 cuando ese contenido esté disponible.':'Nivel A2 bloqueado: '+passed+' de 13 exámenes de módulo aprobados. Examen acumulativo: '+(cumulative||0)+'% (necesitas 80%).';
+  root.innerHTML='';
+  bestByModule.forEach((item,index)=>{
+   const card=document.createElement('article');card.className='vocab-card';
+   const title=document.createElement('strong');title.textContent=(index+1)+'. '+item.name;
+   const score=document.createElement('div');score.className='progress-value';score.textContent=item.score===null?'Pendiente':item.score+'%';
+   const detail=document.createElement('div');detail.className='context';detail.textContent=item.score===null?'Realiza el examen de este módulo':item.score>=80?'Aprobado':'Necesitas repetirlo hasta alcanzar 80%';
+   card.append(title,score,detail);root.append(card);
+  });
+  const examCard=document.createElement('article');examCard.className='vocab-card';
+  const examTitle=document.createElement('strong');examTitle.textContent='Examen acumulativo';
+  const examScore=document.createElement('div');examScore.className='progress-value';examScore.textContent=cumulative+'%';
+  const examDetail=document.createElement('div');examDetail.className='context';examDetail.textContent=cumulativePassed?'Aprobado':'Necesitas al menos 80%';
+  examCard.append(examTitle,examScore,examDetail);root.append(examCard);
+ }
  function paintDashboard(){
   const p=read(PROGRESS_KEY,{}),h=read(HISTORY_KEY,[]),vals=Object.entries(p).filter(([k])=>k!=='cumulative').map(([,v])=>v);
   const avg=vals.length?Math.round(vals.reduce((n,x)=>n+(Number(x.best)||0),0)/vals.length):0;
@@ -881,6 +917,7 @@ startPractice();
   if(!h.length)hist.textContent='Todavía no hay evaluaciones registradas. Completa un examen para comenzar tu historial.';
   h.slice(0,12).forEach(x=>{const c=document.createElement('article');c.className='vocab-card';const t=document.createElement('strong');t.textContent=x.title;const v=document.createElement('div');v.className='progress-value';v.textContent=x.score+'%';const d=document.createElement('div');d.className='context';d.textContent=safeDate(x.date).toLocaleString('es-CO')+' · '+(x.correct||0)+'/'+(x.total||0)+' aciertos';c.append(t,v,d);hist.append(c)});
   paintScheduled();
+  paintLevelGate();
  }
  function paintScheduled(){
   const root=$('scheduledReviews');if(!root)return;root.innerHTML='';
