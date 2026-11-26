@@ -1129,8 +1129,10 @@ function finish(){
   $('curriculumQuizFeedback').textContent='Resultado: '+score+'/'+quiz.length+' · '+pct+'%. '+(pct>=80?'Módulo aprobado y marcado en dorado.':'Necesitas 80% para aprobar este módulo. Puedes repetirlo.');
  }else{
   const approved=Object.keys(s[currentLevel].modules||{}).length;
-  if(pct>=80){s[currentLevel].certified=true;s[currentLevel].score=pct;s[currentLevel].date=new Date().toISOString()}
-  $('curriculumQuizFeedback').textContent='Certificación '+currentLevel+': '+score+'/'+quiz.length+' · '+pct+'%. '+(pct>=80?'¡Nivel certificado! Se ha guardado tu medalla dorada.':'No certificado todavía. Necesitas 80% y puedes volver a intentarlo.')+' Módulos aprobados: '+approved+'/'+levels[currentLevel].modules.length+'.';
+  const allModulesPassed=approved===levels[currentLevel].modules.length;
+  const certified=pct>=80&&allModulesPassed;
+  if(certified){s[currentLevel].certified=true;s[currentLevel].score=pct;s[currentLevel].date=new Date().toISOString()}
+  $('curriculumQuizFeedback').textContent='Certificación '+currentLevel+': '+score+'/'+quiz.length+' · '+pct+'%. '+(certified?'¡Nivel certificado! Se ha guardado tu medalla dorada.':!allModulesPassed?'Todavía no puedes certificar: primero aprueba los '+levels[currentLevel].modules.length+' módulos con al menos 80% en cada uno.':'Examen no aprobado: necesitas 80%. Puedes repetirlo.')+' Módulos aprobados: '+approved+'/'+levels[currentLevel].modules.length+'.';
  }
  save(s);certs();renderModules();$('curriculumQuizNext').disabled=true;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').textContent='Evaluación finalizada';
 }
