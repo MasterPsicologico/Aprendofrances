@@ -211,6 +211,7 @@ $('rate').addEventListener('input',()=>$('rateVal').textContent=Number($('rate')
 $('voice').addEventListener('change',()=>{const v=getVoice();$('status').textContent=v?'Voz seleccionada: '+v.name+' ('+v.lang+').':'Se utilizará la mejor voz francesa detectada automáticamente.'});
 $('stop').addEventListener('click',()=>{queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();$('status').textContent='Audio detenido.'});
 $('playAll').addEventListener('click',async()=>{
+ if($('modulePicker').value!=='alphabet')return;
  if(!('speechSynthesis'in window))return;
  speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
  $('status').textContent='Reproduciendo el alfabeto francés…';
