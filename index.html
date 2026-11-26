@@ -332,8 +332,8 @@ function speakSequence(items,statusText,doneText){
 
 
 const numbers = [
- ['zéro','Cero'],['un','Uno'],['deux','Dos'],['trois','Tres'],['quatre','Cuatro'],['cinq','Cinco'],['six','Seis'],['sept','Siete'],['huit','Ocho'],['neuf','Nueve'],['dix','Diez'],['onze','Once'],['douze','Doce'],['treize','Trece'],['quatorze','Catorce'],['quinze','Quince'],['seize','Dieciséis'],['dix-sept','Diecisiete'],['dix-huit','Dieciocho'],['dix-neuf','Diecinueve'],['vingt','Veinte'],['trente','Treinta'],['quarante','Cuarenta'],['cinquante','Cincuenta'],['soixante','Sesenta'],['soixante-dix','Setenta'],['quatre-vingts','Ochenta'],['quatre-vingt-dix','Noventa'],['cent','Cien']
-].map(([fr,es])=>({fr,es,pron:'Escucha el audio para practicar la pronunciación.',note:'Número en francés.'}));
+ ['zéro','Cero','sé-ro'],['un','Uno','an nasal'],['deux','Dos','dö'],['trois','Tres','truá'],['quatre','Cuatro','katr'],['cinq','Cinco','sank nasal'],['six','Seis','sis'],['sept','Siete','set'],['huit','Ocho','üit'],['neuf','Nueve','nef'],['dix','Diez','dis'],['onze','Once','onz'],['douze','Doce','duz'],['treize','Trece','trez'],['quatorze','Catorce','ka-torz'],['quinze','Quince','kanz nasal'],['seize','Dieciséis','sez'],['dix-sept','Diecisiete','dis-set'],['dix-huit','Dieciocho','di-züit'],['dix-neuf','Diecinueve','dis-nef'],['vingt','Veinte','van nasal'],['trente','Treinta','trant'],['quarante','Cuarenta','ka-rant'],['cinquante','Cincuenta','san-kant nasal'],['soixante','Sesenta','sua-sant'],['soixante-dix','Setenta','sua-sant-dis'],['quatre-vingts','Ochenta','ka-trə-van'],['quatre-vingt-dix','Noventa','ka-trə-van-dis'],['cent','Cien','san nasal']
+].map(([fr,es,pron])=>({fr,es,pron,note:'Número en francés. La pronunciación escrita es aproximada; escucha el audio para familiarizarte con el sonido.'}));
 const agePhrases = [
  {fr:'Quel âge as-tu ?',es:'¿Cuántos años tienes? (informal)',pron:'kel aʒ a tü',note:'Pregunta dirigida a una persona con la que tienes confianza.'},
  {fr:'Quel âge avez-vous ?',es:'¿Cuántos años tiene usted?',pron:'kel aʒ a-vé vu',note:'Forma formal o para dirigirse a varias personas.'},
