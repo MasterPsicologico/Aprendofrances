@@ -194,7 +194,7 @@ $('playAll').addEventListener('click',async()=>{
  }
  if(token===queueToken)$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.';
 });
-render();renderGreetings();loadVoices();
+render();loadVoices();
 if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=loadVoices;
 
 const greetings = [
@@ -226,13 +226,16 @@ function renderGreetings(){
   card.append(word,translation,pron,note,button);grid.appendChild(card);
  });
 }
-$('modulePicker').addEventListener('change',()=>{
+function applySelectedModule(){
  const isAlphabet=$('modulePicker').value==='alphabet';
  $('moduleAlphabet').hidden=!isAlphabet;
  $('moduleGreetings').hidden=isAlphabet;
- queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
- $('status').textContent=isAlphabet?'Módulo 1: alfabeto francés.':'Módulo 2: saludos y despedidas.';
-});
+ $('playAll').textContent=isAlphabet?'▶ Escuchar alfabeto':'▶ Escuchar saludos';
+ queueToken++;
+ if('speechSynthesis'in window)speechSynthesis.cancel();
+ $('status').textContent=isAlphabet?'Módulo 1 activo: alfabeto francés.':'Módulo 2 activo: saludos y despedidas.';
+}
+$('modulePicker').addEventListener('change',applySelectedModule);
 $('playGreetings').addEventListener('click',async()=>{
  if(!('speechSynthesis'in window))return;
  speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
@@ -247,6 +250,7 @@ $('playGreetings').addEventListener('click',async()=>{
  if(token===queueToken)$('status').textContent='¡Clase terminada! Puedes repetir cualquier expresión.';
 });
 renderGreetings();
+applySelectedModule();
 
 </script>
 </body>
