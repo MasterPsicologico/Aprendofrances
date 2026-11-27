@@ -1419,6 +1419,14 @@ certs();renderModules();
   classWrap.classList.toggle('visible',key==='classes');
   byId('navCurrent').textContent=labels[key];
   sectionPicker.value=key;
+  if(key==='alphabet'&&picker){
+   picker.value='alphabet';
+   if(typeof window.applySelectedModule==='function')window.applySelectedModule();
+   else{
+    moduleIds.forEach(id=>{const el=byId(id);if(el)el.hidden=true});
+    const alphabetContent=byId('moduleAlphabet');if(alphabetContent)alphabetContent.hidden=false;
+   }
+  }
   if(key==='classes'&&picker){const target=byId('module'+picker.value.charAt(0).toUpperCase()+picker.value.slice(1));if(target)target.hidden=false}
   window.scrollTo({top:0,behavior:'smooth'});
  }
