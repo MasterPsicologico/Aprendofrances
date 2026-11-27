@@ -129,7 +129,7 @@ main.wrap{max-width:1120px;padding-top:14px}
  <div class="controls">
   <label for="voice">Voz francesa:</label><select id="voice"><option value="">Detectar voz francesa automáticamente</option></select>
   <label for="rate">Velocidad: <span id="rateVal">0.8×</span></label><input id="rate" type="range" min="0.55" max="1.15" step="0.05" value="0.8">
-  <button id="playAll">▶ Escuchar alfabeto</button><button id="stop" class="stop">■ Detener</button>
+  <button id="playAll">▶ Escuchar alfabeto</button><button id="pauseAudio" class="secondary" type="button" aria-pressed="false">⏸ Pausar</button><button id="stop" class="stop">■ Detener</button>
  </div>
  <div id="status" class="status" aria-live="polite">Preparando las voces disponibles… Para escuchar correctamente, permite el audio del navegador y selecciona una voz que indique francés (fr-FR o fr-CA).</div>
 </section>
@@ -409,14 +409,22 @@ function getVoice(){
  if($('voice').value!=='')return voices[Number($('voice').value)]||null;
  return voices.find(v=>/^fr-FR$/i.test(v.lang))||voices.find(v=>/^fr-CA$/i.test(v.lang))||voices.find(v=>/^fr/i.test(v.lang))||null;
 }
+let audioMode='idle';
+function setPauseButton(paused){
+ const b=$('pauseAudio');if(!b)return;
+ b.textContent=paused?'▶ Reanudar':'⏸ Pausar';
+ b.setAttribute('aria-pressed',paused?'true':'false');
+ b.disabled=audioMode==='idle';
+}
 function speak(text){
  if(!('speechSynthesis' in window)){$('status').textContent='Este navegador no admite lectura de voz. Prueba con Chrome o Edge actualizado.';return}
- speechSynthesis.cancel();
+ queueToken++;speechSynthesis.cancel();audioMode='single';setPauseButton(false);
  const utter=new SpeechSynthesisUtterance(text);
  const voice=getVoice(); if(voice){utter.voice=voice;utter.lang=voice.lang}else{utter.lang='fr-FR'}
  utter.rate=Number($('rate').value);utter.pitch=1;
- utter.onstart=()=>{$('status').textContent='Reproduciendo con '+(voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo')+'.'};
- utter.onerror=()=>{$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.'};
+ utter.onstart=()=>{$('status').textContent='Reproduciendo con '+(voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo')+'.';setPauseButton(false)};
+ utter.onend=()=>{if(audioMode==='single'){$('status').textContent='Reproducción terminada.';audioMode='idle';setPauseButton(false)}};
+ utter.onerror=()=>{if(audioMode==='single'){$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.';audioMode='idle';setPauseButton(false)}};
  speechSynthesis.speak(utter);
 }
 function selectLetter(item){
@@ -438,11 +446,16 @@ function render(){
 }
 $('rate').addEventListener('input',()=>$('rateVal').textContent=Number($('rate').value).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'×');
 $('voice').addEventListener('change',()=>{const v=getVoice();$('status').textContent=v?'Voz seleccionada: '+v.name+' ('+v.lang+').':'Se utilizará la mejor voz francesa detectada automáticamente.'});
-$('stop').addEventListener('click',()=>{queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();$('status').textContent='Audio detenido.'});
+$('pauseAudio').addEventListener('click',()=>{
+ if(!('speechSynthesis'in window)||audioMode==='idle')return;
+ if(speechSynthesis.paused){speechSynthesis.resume();setPauseButton(false);$('status').textContent='Reanudando audio…'}
+ else if(speechSynthesis.speaking){speechSynthesis.pause();setPauseButton(true);$('status').textContent='Audio en pausa. Pulsa «Reanudar» para continuar.'}
+});
+$('stop').addEventListener('click',()=>{queueToken++;audioMode='idle';if('speechSynthesis'in window)speechSynthesis.cancel();setPauseButton(false);$('status').textContent='Audio detenido.'});
 $('playAll').addEventListener('click',async()=>{
  if($('modulePicker').value!=='alphabet')return;
  if(!('speechSynthesis'in window))return;
- speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
+ speechSynthesis.cancel();const token=++queueToken;audioMode='all';setPauseButton(false);const v=getVoice();const rate=Number($('rate').value);
  $('status').textContent='Reproduciendo el alfabeto francés…';
  for(const item of letters.filter(x=>x[0]!=='Ñ')){
   if(token!==queueToken)return;
@@ -451,7 +464,7 @@ $('playAll').addEventListener('click',async()=>{
    u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u);
   });
  }
- if(token===queueToken)$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.';
+ if(token===queueToken){audioMode='idle';setPauseButton(false);$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.'}
 });
 render();loadVoices();
 if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=loadVoices;
