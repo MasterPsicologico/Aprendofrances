@@ -47,7 +47,7 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 .vocab-card .context{font-size:13px;color:var(--muted);line-height:1.45;flex:1}
 .vocab-card button{align-self:flex-start}
 .class-speed-control{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 10px;vertical-align:middle;font-size:13px;color:var(--muted,#667085)}.class-speed-control input{width:min(145px,36vw);accent-color:var(--blue,#2860c5)}.class-speed-control output{font-weight:700;color:var(--text,#263247);min-width:34px}.class-speed-control span{font-weight:600}
-.card-speed{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted,#667085);margin:8px 0}.card-speed input{width:min(150px,48%);accent-color:var(--blue,#2860c5)}.card-speed span{font-weight:700;color:var(--text,#263247)}
+.card-speed{display:grid;grid-template-columns:auto minmax(110px,1fr) auto;align-items:center;gap:10px;width:100%;margin:12px 0 14px;padding:10px 12px;background:#f1f5fc;border:1px solid #d8e1f0;border-radius:12px;box-sizing:border-box;font-size:14px;color:#596579}.card-speed-label{font-weight:650;white-space:nowrap}.card-speed input.card-speed-slider{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;min-width:100px!important;height:26px!important;margin:0!important;padding:0!important;accent-color:#2858bd;cursor:pointer;appearance:auto!important;-webkit-appearance:auto!important;background:transparent!important}.card-speed-value{font-weight:800;color:#234eaa;min-width:42px;text-align:right;font-variant-numeric:tabular-nums}
 .vocab-card.is-speaking,.vocab-card.is-speaking:focus-within{border:2px solid #d5a323;background:linear-gradient(145deg,#fff9df,#fff);box-shadow:0 0 0 4px #f3d77855,0 12px 28px #b8861b22;transform:translateY(-2px);transition:background .2s,border .2s,box-shadow .2s,transform .2s}
 .vocab-card.is-speaking .french-word{color:#9a6900}
 .vocab-card{scroll-margin-block:32vh}
@@ -581,11 +581,12 @@ function renderCards(items,gridId){
   const translation=document.createElement('div');translation.className='translation';translation.textContent=item.es;
   const pron=document.createElement('div');pron.className='pronunciation';pron.textContent='Pronunciación aproximada: '+item.pron;
   const note=document.createElement('div');note.className='context';note.textContent=item.note;
-  const speedWrap=document.createElement('label');speedWrap.className='card-speed';speedWrap.textContent='Velocidad individual: ';
-  const speedValue=document.createElement('span');speedValue.textContent=Number($('rate').value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×';
-  const speed=document.createElement('input');speed.type='range';speed.min='0.55';speed.max='1.15';speed.step='0.05';speed.value=$('rate').value;speed.setAttribute('aria-label','Velocidad de pronunciación para '+item.fr);
-  speed.addEventListener('input',()=>{speedValue.textContent=Number(speed.value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×'});
-  speedWrap.append(speed,speedValue);
+  const speedWrap=document.createElement('div');speedWrap.className='card-speed';
+  const speedLabel=document.createElement('span');speedLabel.className='card-speed-label';speedLabel.textContent='Velocidad individual';
+  const speed=document.createElement('input');speed.type='range';speed.className='card-speed-slider';speed.min='0.55';speed.max='1.15';speed.step='0.05';speed.value=$('rate').value;speed.setAttribute('aria-label','Velocidad de pronunciación para '+item.fr);
+  const speedValue=document.createElement('output');speedValue.className='card-speed-value';speedValue.textContent=formatPlaybackRate(speed.value);
+  speed.addEventListener('input',()=>{speedValue.textContent=formatPlaybackRate(speed.value)});
+  speedWrap.append(speedLabel,speed,speedValue);
   const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='🔊 Escuchar';btn.addEventListener('click',e=>{e.stopPropagation();speak(item.fr,card,Number(speed.value))});
   card.addEventListener('click',e=>{if(e.target.closest('button,input,label'))return;speak(item.fr,card,Number(speed.value))});
   card.setAttribute('role','button');card.setAttribute('tabindex','0');card.setAttribute('aria-label','Reproducir '+item.fr+' individualmente');
@@ -730,11 +731,12 @@ function renderGreetings(){
   const pron=document.createElement('div');pron.className='pronunciation';pron.textContent='Pronunciación aproximada: '+item.pron;
   const note=document.createElement('div');note.className='context';note.textContent=item.note;
   const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='🔊 Escuchar';
-  const speedWrap=document.createElement('label');speedWrap.className='card-speed';speedWrap.textContent='Velocidad individual: ';
-  const speedValue=document.createElement('span');speedValue.textContent=Number($('rate').value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×';
-  const speed=document.createElement('input');speed.type='range';speed.min='0.55';speed.max='1.15';speed.step='0.05';speed.value=$('rate').value;speed.setAttribute('aria-label','Velocidad de pronunciación para '+item.fr);
-  speed.addEventListener('input',()=>{speedValue.textContent=Number(speed.value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×'});
-  button.setAttribute('aria-label','Escuchar '+item.fr);button.addEventListener('click',e=>{e.stopPropagation();speak(item.fr,card,Number(speed.value))});
+  const speedWrap=document.createElement('div');speedWrap.className='card-speed';
+  const speedLabel=document.createElement('span');speedLabel.className='card-speed-label';speedLabel.textContent='Velocidad individual';
+  const speed=document.createElement('input');speed.type='range';speed.className='card-speed-slider';speed.min='0.55';speed.max='1.15';speed.step='0.05';speed.value=$('rate').value;speed.setAttribute('aria-label','Velocidad de pronunciación para '+item.fr);
+  const speedValue=document.createElement('output');speedValue.className='card-speed-value';speedValue.textContent=formatPlaybackRate(speed.value);
+  speed.addEventListener('input',()=>{speedValue.textContent=formatPlaybackRate(speed.value)});
+  speedWrap.append(speedLabel,speed,speedValue);  button.setAttribute('aria-label','Escuchar '+item.fr);button.addEventListener('click',e=>{e.stopPropagation();speak(item.fr,card,Number(speed.value))});
   card.addEventListener('click',e=>{if(e.target.closest('button,input,label'))return;speak(item.fr,card,Number(speed.value))});
   card.setAttribute('role','button');card.setAttribute('tabindex','0');card.setAttribute('aria-label','Reproducir '+item.fr+' individualmente');
   card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();speak(item.fr,card,Number(speed.value))}});
