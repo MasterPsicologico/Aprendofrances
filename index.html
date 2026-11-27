@@ -1737,7 +1737,7 @@ paint();
  function apply(){const reverse=courseDirection==='es-fr';document.documentElement.lang=reverse?'fr':'es';document.title=reverse?'Mon cours d’espagnol':'Mi alfabeto francés';translateTree(document.querySelector('header'));translateTree($('appNavigation'));translateTree($('advancedPracticeLab'));translateTree($('learningProgress'));translateTree($('learningDashboard'));translateTree($('fullCurriculum'));translateTree($('memoryCenter'));if($('courseDirectionLabel'))$('courseDirectionLabel').textContent=reverse?'Vous apprenez l’espagnol · Interface en français':'Aprendes francés · Interfaz en español';}
  document.addEventListener('click',e=>{if(e.target&&e.target.id==='courseDirectionToggle')setTimeout(apply,0)});
  document.addEventListener('change',e=>{if(e.target&&['sectionPicker','modulePicker'].includes(e.target.id))setTimeout(apply,0)});
- const observer=new MutationObserver(()=>{if(courseDirection==='es-fr'){apply()}});observer.observe(document.body,{subtree:true,childList:true});
+ // Traducción por eventos explícitos: evita ciclos de mutación del DOM.
  window.applyAprendoFrenchInterface=apply;
 })();
 </script>
