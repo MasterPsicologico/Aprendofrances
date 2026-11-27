@@ -419,18 +419,18 @@ let voices=[], queueToken=0;
 function loadVoices(){
  if(!('speechSynthesis' in window)){$('status').textContent='Este navegador no admite lectura de voz. Prueba con Chrome o Edge actualizado.';return}
  voices=speechSynthesis.getVoices();
- const select=$('voice'); const previous=select.value;
- select.innerHTML='<option value="">Detectar voz francesa automáticamente</option>';
- const french=voices.filter(v=>/^fr([-_]|$)/i.test(v.lang));
- french.forEach(v=>{const o=document.createElement('option');o.value=String(voices.indexOf(v));o.textContent=v.name+' ('+v.lang+')'+(v.default?' — predeterminada':'');select.appendChild(o)});
- if(previous && [...select.options].some(o=>o.value===previous))select.value=previous;
- $('status').textContent=french.length
- ? 'Se encontraron '+french.length+' voz/ voces en francés. Puedes elegir francés de Francia (fr-FR) o de Canadá (fr-CA).'
- : 'No se detectó una voz francesa instalada. Activa o instala una voz fr-FR o fr-CA en tu dispositivo para obtener mejor pronunciación.';
+ const select=$('voice'),previous=select.value,reverse=courseDirection==='es-fr',prefix=reverse?'es':'fr',name=reverse?'español':'francés';
+ select.innerHTML='<option value="">Detectar voz '+name+' automáticamente</option>';
+ const available=voices.filter(v=>new RegExp('^'+prefix+'([-_]|$)','i').test(v.lang));
+ available.forEach(v=>{const o=document.createElement('option');o.value=String(voices.indexOf(v));o.textContent=v.name+' ('+v.lang+')'+(v.default?' — predeterminada':'');select.appendChild(o)});
+ if(previous&&[...select.options].some(o=>o.value===previous))select.value=previous;else select.value='';
+ $('status').textContent=available.length?'Se encontraron '+available.length+' voces en '+name+'.':'No se detectó una voz de '+name+' instalada. Se usará la voz predeterminada del dispositivo.';
 }
 function getVoice(){
  if($('voice').value!=='')return voices[Number($('voice').value)]||null;
- return voices.find(v=>/^fr-FR$/i.test(v.lang))||voices.find(v=>/^fr-CA$/i.test(v.lang))||voices.find(v=>/^fr/i.test(v.lang))||null;
+ const pref=courseDirection==='es-fr'?['es-CO','es-MX','es-419','es-ES']:['fr-FR','fr-CA'];
+ for(const lang of pref){const v=voices.find(x=>x.lang.toLowerCase()===lang.toLowerCase());if(v)return v}
+ const prefix=courseDirection==='es-fr'?'es':'fr';return voices.find(v=>new RegExp('^'+prefix,'i').test(v.lang))||null;
 }
 let audioMode='idle';
 function highlightLetter(letter,scroll){
@@ -903,6 +903,7 @@ function applySelectedModule(){
  queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
  $('status').textContent=labels[key]||'Módulo seleccionado.';
  if(courseDirection==='es-fr')translateA1StaticContent();
+ render();loadVoices();
 }
 $('courseDirectionToggle').addEventListener('click',()=>{
  queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();audioMode='idle';setPauseButton(false);clearAllAudioHighlights();
@@ -1105,16 +1106,16 @@ startPractice();
  $('examStart').addEventListener('click',startExam);
  function newOrder(){
   const src=items().filter(x=>x.fr.trim().split(/\s+/).length>=2);if(!src.length){$('orderTranslation').textContent='Este módulo necesita frases de varias palabras para esta actividad.';return}
-  orderItem=shuffled(src)[0];const words=orderItem.fr.split(/\s+/);orderPicked=[];$('orderTranslation').textContent='Traduce: '+orderItem.es;$('orderAnswer').textContent='—';$('orderFeedback').textContent='';$('orderChoices').innerHTML='';
+  orderItem=shuffled(src)[0];const target=courseDirection==='es-fr'?orderItem.es:orderItem.fr;const words=target.split(/\s+/);orderPicked=[];$('orderTranslation').textContent=courseDirection==='es-fr'?'Traduisez : '+orderItem.fr:'Traduce: '+orderItem.es;$('orderAnswer').textContent='—';$('orderFeedback').textContent='';$('orderChoices').innerHTML='';
   shuffled(words.map((w,i)=>({w,id:i}))).forEach(obj=>{const b=document.createElement('button');b.type='button';b.textContent=obj.w;b.addEventListener('click',()=>{if(b.disabled)return;orderPicked.push(obj);b.disabled=true;paintOrderAnswer()});$('orderChoices').appendChild(b)});
  }
  function paintOrderAnswer(){ $('orderAnswer').innerHTML='';orderPicked.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=o.w+' ×';b.addEventListener('click',()=>{orderPicked.splice(i,1);$('orderChoices').querySelectorAll('button').forEach(x=>{if(x.textContent===o.w&&x.disabled){x.disabled=false;return}});paintOrderAnswer()});$('orderAnswer').appendChild(b)})}
- $('orderCheck').addEventListener('click',()=>{if(!orderItem)return;const ok=clean(orderPicked.map(x=>x.w).join(' '))===clean(orderItem.fr);$('orderFeedback').textContent=ok?'¡Excelente! La oración está bien ordenada.':'Aún no está en el orden correcto. Prueba otra combinación o pulsa «Otra oración».';$('orderFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(orderItem)});
+ $('orderCheck').addEventListener('click',()=>{if(!orderItem)return;const ok=clean(orderPicked.map(x=>x.w).join(' '))===clean(courseDirection==='es-fr'?orderItem.es:orderItem.fr);$('orderFeedback').textContent=ok?'¡Excelente! La oración está bien ordenada.':'Aún no está en el orden correcto. Prueba otra combinación o pulsa «Otra oración».';$('orderFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(orderItem)});
  $('orderReset').addEventListener('click',newOrder);
- function newDictation(){const src=items();if(!src.length)return;dictationItem=shuffled(src)[0];$('dictationInput').value='';$('dictationFeedback').textContent='Escucha y escribe la frase.'}
- $('dictationHear').addEventListener('click',()=>{if(dictationItem&&typeof speak==='function')speak(dictationItem.fr)});
+ function newDictation(){const src=items();if(!src.length)return;dictationItem=shuffled(src)[0];$('dictationInput').value='';$('dictationFeedback').textContent=courseDirection==='es-fr'?'Écoutez et écrivez la phrase en espagnol.':'Escucha y escribe la frase en francés.'}
+ $('dictationHear').addEventListener('click',()=>{if(dictationItem&&typeof speak==='function')speak(courseDirection==='es-fr'?dictationItem.es:dictationItem.fr)});
  $('dictationNew').addEventListener('click',newDictation);
- $('dictationCheck').addEventListener('click',()=>{if(!dictationItem)return;const ok=clean($('dictationInput').value)===clean(dictationItem.fr);$('dictationFeedback').textContent=ok?'¡Muy bien! Dictado correcto.':'La respuesta modelo es: '+dictationItem.fr;$('dictationFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(dictationItem)});
+ $('dictationCheck').addEventListener('click',()=>{if(!dictationItem)return;const expected=courseDirection==='es-fr'?dictationItem.es:dictationItem.fr;const ok=clean($('dictationInput').value)===clean(expected);$('dictationFeedback').textContent=courseDirection==='es-fr'?(ok?'Très bien ! Dictée correcte.':'Réponse modèle : '+expected):(ok?'¡Muy bien! Dictado correcto.':'La respuesta modelo es: '+expected);$('dictationFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(dictationItem)});
  const speakSamples=[
   {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr'},
   {fr:'Au revoir',es:'Adiós / Hasta luego',pron:'o rə-vuár'},
@@ -1123,13 +1124,13 @@ startPractice();
   {fr:'Je ne comprends pas',es:'No entiendo',pron:'ʒə nə kom-pran pa'},
   {fr:'Pouvez-vous répéter, s’il vous plaît ?',es:'¿Puede repetir, por favor?',pron:'pu-vé vu ré-pé-té sil vu plé'}
  ];
- function renderSpeak(){const x=speakSamples[speakAt%speakSamples.length];$('speakTarget').textContent=x.fr;$('speakTranslation').textContent=x.es;$('speakPronunciation').textContent='Pronunciación aproximada: '+x.pron;$('speakResult').textContent='Escucha el modelo y después intenta decirlo.'}
+ function renderSpeak(){const x=speakSamples[speakAt%speakSamples.length],reverse=courseDirection==='es-fr';$('speakTarget').textContent=reverse?x.es:x.fr;$('speakTranslation').textContent=reverse?x.fr:x.es;$('speakPronunciation').textContent=(reverse?'Prononciation approximative : ':'Pronunciación aproximada: ')+(reverse?x.es.toLowerCase():x.pron);$('speakResult').textContent=reverse?'Écoutez le modèle, puis répétez en espagnol.':'Escucha el modelo y después intenta decirlo.'}
  $('speakModel').addEventListener('click',()=>{if(typeof speak==='function')speak($('speakTarget').textContent)});
  $('speakNext').addEventListener('click',()=>{speakAt++;renderSpeak()});
  $('speakMic').addEventListener('click',()=>{
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){$('speakResult').textContent='Tu navegador no ofrece reconocimiento de voz. Prueba con Chrome actualizado y permite el acceso al micrófono.';return}
-  const rec=new SR();rec.lang='fr-FR';rec.interimResults=false;rec.maxAlternatives=3;$('speakResult').textContent='Escuchando… Habla ahora en francés.';
+  const rec=new SR();rec.lang=courseDirection==='es-fr'?'es-CO':'fr-FR';rec.interimResults=false;rec.maxAlternatives=3;$('speakResult').textContent=courseDirection==='es-fr'?'Écoute en cours… Parlez maintenant en espagnol.':'Escuchando… Habla ahora en francés.';
   rec.onresult=e=>{const heard=e.results[0][0].transcript,expected=$('speakTarget').textContent;const ok=clean(heard)===clean(expected);$('speakResult').textContent='El navegador reconoció: «'+heard+'». '+(ok?'La transcripción coincide con el modelo.':'Compáralo con el modelo: '+expected+'. La transcripción no mide todos los sonidos ni tu acento.');$('speakResult').className='exercise-feedback '+(ok?'good':'bad')};
   rec.onerror=e=>{$('speakResult').textContent='No se pudo reconocer la voz ('+e.error+'). Revisa el permiso del micrófono y la conexión.'};
   rec.start();
@@ -1660,65 +1661,87 @@ certs();renderModules();
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const topics=[
-{title:'La R francesa',symbol:'ʁ',target:'rouge',ipa:'/ʁuʒ/',category:'CONSONANTE POSTERIOR',explain:'La R francesa estándar suele ser una fricativa o aproximante uvular. Se forma atrás, cerca de la úvula; no se hace vibrar la punta de la lengua como en la R fuerte española.',guide:'Relaja la mandíbula. Eleva ligeramente la parte posterior de la lengua hacia el velo del paladar. Deja pasar el aire con una fricción suave y continua. No fuerces la garganta ni hagas gárgaras.',mistake:'Evita sustituirla por la R vibrante española. Practica primero el sonido suave y después intégralo en rouge, rue y Paris.'},
-{title:'U francesa /y/',symbol:'y',target:'tu',ipa:'/ty/',category:'VOCAL ANTERIOR REDONDEADA',explain:'La U francesa no equivale a la U española. La lengua se coloca como para decir «i», pero los labios se redondean.',guide:'Di una «i» sostenida sin cambiar la posición de la lengua. Redondea los labios como para decir «u». Mantén la lengua adelante.',mistake:'No retraigas la lengua para convertirla en la U española. Contrasta tu con tout.'},
-{title:'OU francesa /u/',symbol:'u',target:'tout',ipa:'/tu/',category:'VOCAL',explain:'OU representa normalmente /u/, un sonido cercano a la U española.',guide:'Redondea los labios y lleva la lengua hacia atrás. Mantén el sonido estable y breve.',mistake:'No confundas OU /u/ con U /y/. Escucha y compara tu y tout.'},
-{title:'Vocal nasal /ɑ̃/',symbol:'ɑ̃',target:'sans',ipa:'/sɑ̃/',category:'VOCAL NASAL',explain:'El sonido se produce con resonancia nasal. No añadas una N o una M pronunciada al final.',guide:'Abre la boca de forma cómoda y deja que parte del aire resuene por la nariz. Mantén la vocal; no cierres con una consonante N.',mistake:'Evita decir «san» con una N final española claramente articulada.'},
-{title:'Vocal nasal /ɔ̃/',symbol:'ɔ̃',target:'bon',ipa:'/bɔ̃/',category:'VOCAL NASAL',explain:'Es una vocal nasal redondeada. Los labios se redondean y el aire también resuena por la nariz.',guide:'Redondea los labios suavemente. Sostén la vocal nasal sin terminar con una N audible.',mistake:'Evita pronunciar una O seguida de N como dos sonidos separados.'},
-{title:'Vocal nasal /ɛ̃/',symbol:'ɛ̃',target:'pain',ipa:'/pɛ̃/',category:'VOCAL NASAL',explain:'Vocal nasal anterior, frecuente en palabras como pain y matin.',guide:'Coloca la lengua adelante, con la boca algo abierta, y deja resonancia nasal. No añadas una N final.',mistake:'No conviertas la vocal en «ein» español con consonante N audible.'},
-{title:'E cerrada y abierta /e/–/ɛ/',symbol:'e / ɛ',target:'été',ipa:'/ete/ · père /pɛʁ/',category:'CONTRASTE VOCÁLICO',explain:'El francés distingue vocales cercanas que el español suele aproximar. La calidad puede variar según la palabra y el acento.',guide:'Para /e/, la lengua está más alta y la boca más cerrada. Para /ɛ/, abre un poco más la mandíbula y baja ligeramente la lengua.',mistake:'No conviertas ambas vocales en el mismo sonido español.'},
-{title:'CH /ʃ/ y J /ʒ/',symbol:'ʃ / ʒ',target:'chat',ipa:'/ʃa/ · jour /ʒuʁ/',category:'CONSONANTES FRICATIVAS',explain:'CH suele sonar /ʃ/. J suele sonar /ʒ/, una fricativa sonora.',guide:'Para /ʃ/, deja pasar aire sin vibración de las cuerdas vocales. Para /ʒ/, conserva una posición parecida pero activa la voz.',mistake:'No pronuncies CH como la «ch» española de chico. Distingue chat de jour.'},
-{title:'Consonantes finales y liaison',symbol:'‿',target:'vous avez',ipa:'/vu.z‿a.ve/',category:'ENLACE ENTRE PALABRAS',explain:'Muchas consonantes finales francesas no se pronuncian de forma aislada. En ciertos contextos, una consonante final se enlaza con la vocal inicial de la palabra siguiente.',guide:'Escucha la frase completa. En vous avez aparece un enlace /z/ entre vous y avez. No añadas enlaces donde no corresponden.',mistake:'No pronuncies todas las consonantes finales ni hagas liaison automáticamente en cada palabra.'}
+const french=[
+{title:'La R française',symbol:'ʁ',target:'rouge',ipa:'/ʁuʒ/',category:'CONSONNE POSTÉRIEURE',explain:'Le R français se forme à l’arrière de la bouche, près de la luette. La pointe de la langue ne vibre pas comme pour le R roulé espagnol.',guide:'Détendez la mâchoire. Relevez légèrement l’arrière de la langue et laissez passer l’air doucement. Ne forcez pas la gorge.',mistake:'Évitez de remplacer ce son par le R roulé espagnol.'},
+{title:'U française /y/',symbol:'y',target:'tu',ipa:'/ty/',category:'VOYELLE ANTÉRIEURE ARRONDIE',explain:'La langue se place comme pour prononcer « i », mais les lèvres s’arrondissent.',guide:'Prononcez un « i » prolongé puis arrondissez les lèvres sans déplacer la langue.',mistake:'Ne reculez pas la langue pour produire le U espagnol.'},
+{title:'OU /u/',symbol:'u',target:'tout',ipa:'/tu/',category:'VOYELLE',explain:'OU représente généralement /u/, proche du U espagnol.',guide:'Arrondissez les lèvres et placez la langue vers l’arrière.',mistake:'Ne confondez pas OU /u/ et U /y/.'},
+{title:'Voyelles nasales',symbol:'ɑ̃ ɔ̃ ɛ̃',target:'un bon pain',ipa:'/œ̃ bɔ̃ pɛ̃/',category:'VOYELLES NASALES',explain:'Les voyelles nasales comportent une résonance dans le nez. N’ajoutez pas une consonne N ou M finale.',guide:'Laissez résonner la voyelle par la bouche et le nez, sans fermer la syllabe.',mistake:'Évitez de prononcer une voyelle suivie d’un N audible.'},
+{title:'E fermé et ouvert',symbol:'e / ɛ',target:'été, père',ipa:'/ete/ · /pɛʁ/',category:'CONTRASTE VOCALIQUE',explain:'Le français distingue des qualités vocaliques proches que l’espagnol tend à rapprocher.',guide:'Pour /e/, la bouche est plus fermée. Pour /ɛ/, ouvrez un peu plus la mâchoire.',mistake:'Ne prononcez pas les deux voyelles de manière identique.'},
+{title:'CH et J',symbol:'ʃ / ʒ',target:'chat, jour',ipa:'/ʃa/ · /ʒuʁ/',category:'CONSONNES FRICATIVES',explain:'CH se prononce généralement /ʃ/ et J /ʒ/.',guide:'Pour /ʃ/, laissez passer l’air sans voix. Pour /ʒ/, faites vibrer les cordes vocales.',mistake:'Ne prononcez pas CH comme le « ch » espagnol de chico.'},
+{title:'Consonnes finales',symbol:'t d s x',target:'petit, grand, vous',ipa:'selon le mot',category:'CONSONNES FINALES',explain:'De nombreuses consonnes finales ne se prononcent pas, mais il existe des exceptions.',guide:'Apprenez la prononciation de chaque mot et écoutez les liaisons.',mistake:'Ne prononcez pas automatiquement toutes les consonnes écrites.'},
+{title:'Liaison',symbol:'‿',target:'vous avez',ipa:'/vu.z‿a.ve/',category:'ENCHAÎNEMENT',explain:'Dans certains contextes, une consonne finale normalement muette se lie à la voyelle du mot suivant.',guide:'Dans « vous avez », le son /z/ relie les deux mots.',mistake:'Ne faites pas de liaison entre tous les mots.'}
 ];
-const pronFr=[
-{category:'CONSONNE POSTÉRIEURE',explain:'Le R français standard est généralement une fricative ou une approximante uvulaire. Il se forme à l’arrière de la bouche, près de la luette ; la pointe de la langue ne vibre pas comme pour le R roulé espagnol.',guide:'Détendez la mâchoire. Relevez légèrement l’arrière de la langue vers le voile du palais. Laissez passer l’air avec une friction douce et continue. Ne forcez pas la gorge et ne faites pas de gargouillis.',mistake:'Évitez de remplacer ce son par le R roulé espagnol. Commencez doucement, puis entraînez-vous avec rouge, rue et Paris.'},
-{category:'VOYELLE ANTÉRIEURE ARRONDIE',explain:'Le U français ne correspond pas au U espagnol. La langue se place comme pour prononcer « i », mais les lèvres s’arrondissent.',guide:'Prononcez un « i » prolongé sans déplacer la langue. Arrondissez les lèvres comme pour dire « ou ». Gardez la langue vers l’avant.',mistake:'Ne reculez pas la langue pour produire le U espagnol. Comparez tu et tout.'},
-{category:'VOYELLE',explain:'OU représente normalement le son /u/, proche du U espagnol.',guide:'Arrondissez les lèvres et placez la langue vers l’arrière. Gardez un son stable et bref.',mistake:'Ne confondez pas OU /u/ et U /y/. Écoutez et comparez tu et tout.'},
-{category:'VOYELLE NASALE',explain:'Ce son comporte une résonance nasale. N’ajoutez pas un N ou un M prononcé à la fin.',guide:'Ouvrez confortablement la bouche et laissez une partie de l’air résonner dans le nez. Maintenez la voyelle sans la terminer par une consonne N.',mistake:'Évitez de prononcer « san » avec un N final espagnol nettement articulé.'},
-{category:'VOYELLE NASALE',explain:'C’est une voyelle nasale arrondie. Les lèvres s’arrondissent et l’air résonne également dans le nez.',guide:'Arrondissez doucement les lèvres. Maintenez la voyelle nasale sans terminer par un N audible.',mistake:'Évitez de prononcer un O suivi d’un N comme deux sons séparés.'},
-{category:'VOYELLE NASALE',explain:'Voyelle nasale antérieure, fréquente dans des mots comme pain et matin.',guide:'Placez la langue vers l’avant, la bouche légèrement ouverte, et laissez une résonance nasale se produire. N’ajoutez pas de N final.',mistake:'Ne transformez pas la voyelle en « ein » espagnol avec un N audible.'},
-{category:'CONTRASTE VOCALIQUE',explain:'Le français distingue des voyelles proches que l’espagnol tend à rapprocher. Leur qualité peut varier selon le mot et l’accent.',guide:'Pour /e/, la langue est plus haute et la bouche plus fermée. Pour /ɛ/, ouvrez un peu plus la mâchoire et abaissez légèrement la langue.',mistake:'Ne prononcez pas ces deux voyelles comme un seul son espagnol.'},
-{category:'CONSONNES FRICATIVES',explain:'CH se prononce généralement /ʃ/. J se prononce généralement /ʒ/, une fricative sonore.',guide:'Pour /ʃ/, laissez passer l’air sans faire vibrer les cordes vocales. Pour /ʒ/, gardez une position similaire, mais faites vibrer la voix.',mistake:'Ne prononcez pas CH comme le « ch » espagnol de chico. Distinguez chat et jour.'},
-{category:'LIAISON ENTRE LES MOTS',explain:'De nombreuses consonnes finales françaises ne se prononcent pas isolément. Dans certains contextes, une consonne finale se lie à la voyelle initiale du mot suivant.',guide:'Écoutez la phrase entière. Dans vous avez, une liaison /z/ apparaît entre vous et avez. N’ajoutez pas de liaison lorsqu’elle n’est pas appropriée.',mistake:'Ne prononcez pas toutes les consonnes finales et ne faites pas automatiquement une liaison entre chaque mot.'}
+const spanish=[
+{title:'R suave /ɾ/ y RR fuerte /r/',symbol:'ɾ / r',target:'pero perro',ipa:'/ˈpe.ɾo/ · /ˈpe.ro/',category:'VIBRANTES',explain:'La R entre vocales suele ser suave /ɾ/ en « pero ». La RR de « perro » es vibrante múltiple /r/. La R francesa uvular no sustituye estos dos sonidos.',guide:'Para la R suave, haz un contacto breve de la punta de la lengua detrás de los dientes superiores. Para RR, permite varias vibraciones rápidas. Practica sin tensar la mandíbula.',mistake:'No sustituyas ambas por la R francesa de garganta ni conviertas cada R en una vibración múltiple.'},
+{title:'La J española /x/',symbol:'x',target:'jamón',ipa:'/xaˈmon/',category:'FRICATIVA VELAR',explain:'La J española suele representar /x/, un sonido fricativo producido en la parte posterior de la boca. Es diferente de la J francesa /ʒ/.',guide:'Eleva la parte posterior de la lengua hacia el velo del paladar y deja salir el aire sin vibración de la voz. No fuerces la garganta.',mistake:'No la pronuncies como la J francesa de «jour».'},
+{title:'La Ñ /ɲ/',symbol:'ɲ',target:'niño',ipa:'/ˈni.ɲo/',category:'NASAL PALATAL',explain:'La Ñ representa /ɲ/, una consonante nasal palatal. No es simplemente una N seguida de una Y.',guide:'Apoya la parte media de la lengua contra el paladar duro y deja pasar el aire por la nariz.',mistake:'No separes la palabra en «nin-yo». Compara «nino» y «niño».'},
+{title:'Las cinco vocales',symbol:'a e i o u',target:'casa mesa piso',ipa:'/a e i o u/',category:'VOCALES',explain:'El español tiene cinco vocales con timbre relativamente estable. No se reducen igual que algunas vocales átonas del francés.',guide:'Pronuncia cada vocal clara y brevemente: A abierta, E e I anteriores, O y U posteriores.',mistake:'No conviertas las vocales átonas en sonidos neutros.'},
+{title:'B y V',symbol:'b',target:'boca vaca',ipa:'/ˈbo.ka/ · /ˈba.ka/',category:'OCLUSIVA Y APROXIMANTE',explain:'En la mayoría del español, B y V representan el mismo fonema /b/. Su realización puede ser oclusiva o aproximante según el contexto.',guide:'Junta ambos labios al iniciar la palabra. Entre vocales, el contacto suele ser más suave.',mistake:'No uses la V labiodental francesa como regla general para la V española.'},
+{title:'D y G suaves',symbol:'ð / ɣ',target:'cada agua',ipa:'/ˈka.ða/ · /ˈa.ɣwa/',category:'APROXIMANTES',explain:'Entre vocales, D y G suelen realizarse de forma suave [ð] y [ɣ], sin un cierre completo.',guide:'Deja un paso de aire estrecho y relajado. Compara «donde» y «cada».',mistake:'No pronuncies cada D y G como consonantes fuertes aisladas.'},
+{title:'Acento prosódico y tilde',symbol:'ˈ',target:'público publico publicó',ipa:'/ˈpu.bli.ko/ · /puˈbli.ko/ · /pu.bliˈko/',category:'ACENTO',explain:'El español distingue palabras por la sílaba tónica. La tilde escrita marca ciertos acentos según las reglas ortográficas.',guide:'Marca con claridad PÚ-bli-co, pu-BLI-co y publi-CÓ. Mantén audibles las demás sílabas.',mistake:'No coloques automáticamente el acento al final por influencia de la prosodia francesa.'},
+{title:'Diptongos e hiatos',symbol:'ai / a.i',target:'ciudad país poeta',ipa:'/sjuˈðað/ · /paˈis/ · /poˈe.ta/',category:'SECUENCIA VOCÁLICA',explain:'Dos vocales pueden formar una misma sílaba (diptongo) o separarse (hiato). La tilde puede marcar la separación.',guide:'Di «ciu-dad» enlazando las vocales, pero separa «pa-ís» y «po-e-ta».',mistake:'No separes todas las vocales contiguas ni las unas automáticamente.'},
+{title:'S, C y Z: seseo latinoamericano',symbol:'s',target:'casa caza zapato',ipa:'/ˈka.sa/ · /ˈka.sa/ · /saˈpa.to/',category:'VARIANTE COLOMBIANA',explain:'En Colombia y en la mayor parte de América Latina se usa el seseo: S, Z y C ante E o I se pronuncian /s/. En buena parte de España existe la distinción /s/–/θ/.',guide:'Para la referencia colombiana, pronuncia «casa» y «caza» con el mismo sonido /s/. Mantén la lengua cerca de los alvéolos.',mistake:'No enseñes /θ/ como obligatorio para el español latinoamericano. La variante de España también es válida.'},
+{title:'Entonación y ritmo',symbol:'↗ ↘',target:'¿Cómo estás? Estoy muy bien.',ipa:'entonación interrogativa y declarativa',category:'PROSODIA',explain:'El español tiene patrones de entonación y ritmo propios. Las preguntas, afirmaciones y emociones modifican la melodía de la frase.',guide:'Escucha la frase completa. Practica preguntas y afirmaciones con una melodía natural, sin trasladar automáticamente la entonación francesa.',mistake:'No mantengas una melodía plana ni imites directamente el ritmo francés.'}
 ];
-let index=0,streak=0,passed=new Set(),recognition=null;
-const storageKey='aprendofrances_pronunciation_a1_v1';
-try{const saved=JSON.parse(localStorage.getItem(storageKey)||'{}');passed=new Set(Array.isArray(saved.passed)?saved.passed:[])}catch(e){}
-function save(){try{localStorage.setItem(storageKey,JSON.stringify({passed:[...passed]}))}catch(e){}}
-function stopRecognition(){if(recognition){try{recognition.abort()}catch(e){}recognition=null}}
+let index=0,streak=0,passed=new Set(),recognition=null,prev=courseDirection;
+const key=()=> 'aprendofrances_pronunciation_'+(courseDirection==='es-fr'?'es':'fr')+'_a1_v2';
+const list=()=>courseDirection==='es-fr'?spanish:french;
+const lang=()=>courseDirection==='es-fr'?'es-CO':'fr-FR';
+function load(){try{const d=JSON.parse(localStorage.getItem(key())||'{}');passed=new Set(Array.isArray(d.passed)?d.passed:[])}catch(e){passed=new Set()}}
+function save(){try{localStorage.setItem(key(),JSON.stringify({passed:[...passed]}))}catch(e){}}
+function stop(){if(recognition){try{recognition.abort()}catch(e){}recognition=null}}
 function paint(){
- const t=topics[index];
- $('pronunciationCategory').textContent=courseDirection==='es-fr'?'SON '+(index+1)+' SUR '+topics.length+' · '+pronFr[index].category:'SONIDO '+(index+1)+' DE '+topics.length+' · '+t.category;
+ const reverse=courseDirection==='es-fr',all=list(),t=all[index];
+ $('pronunciationCategory').textContent=(reverse?'SON ':'SONIDO ')+(index+1)+' DE '+all.length+' · '+t.category;
  $('pronunciationTitle').textContent=t.title;$('pronunciationSymbol').textContent=t.symbol;$('pronunciationTarget').textContent=t.target;$('pronunciationIPA').textContent='AFI (IPA): '+t.ipa;
- $('pronunciationExplain').textContent=courseDirection==='es-fr'?pronFr[index].explain:t.explain;$('pronunciationGuide').textContent=courseDirection==='es-fr'?pronFr[index].guide:t.guide;$('pronunciationMistake').textContent=courseDirection==='es-fr'?'Erreur fréquente : '+pronFr[index].mistake:'Error frecuente: '+t.mistake;
- $('pronunciationFeedback').textContent=courseDirection==='es-fr'?'Écoutez le modèle et entraînez-vous. Trois reconnaissances consécutives sont nécessaires pour enregistrer cet objectif comme pratiqué.':'Escucha el modelo y practica. Necesitas tres coincidencias consecutivas del reconocimiento para registrar este objetivo como practicado.';
- $('pronunciationTranscript').textContent=courseDirection==='es-fr'?'Entraînez-vous calmement et répétez après avoir écouté le modèle.':'Practica con calma y repite después de escuchar el modelo.';
- $('pronunciationProgress').textContent=passed.size+' de '+topics.length+' sonidos practicados';$('pronunciationStreak').textContent='Racha: '+streak;
- $('pronunciationBar').style.width=(passed.size/topics.length*100)+'%';$('pronunciationTopics').innerHTML='';
- topics.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=(passed.has(i)?'⭐ ':'')+(i+1)+'. '+x.title;b.addEventListener('click',()=>{stopRecognition();index=i;streak=0;paint();$('pronunciationTrainer').scrollIntoView({behavior:'smooth',block:'start'})});$('pronunciationTopics').append(b)});
+ $('pronunciationExplain').textContent=t.explain;$('pronunciationGuide').textContent=t.guide;$('pronunciationMistake').textContent=(reverse?'Erreur fréquente : ':'Error frecuente: ')+t.mistake;
+ $('pronunciationFeedback').textContent=reverse?'Écoutez le modèle et répétez-le. Trois transcriptions concordantes enregistrent l’objectif comme pratiqué, sans certifier l’articulation.':'Escucha el modelo y repítelo. Tres transcripciones coincidentes registran el objetivo como practicado, pero no certifican la articulación.';
+ $('pronunciationTranscript').textContent=reverse?'Le navigateur compare la transcription ; il ne certifie pas votre prononciation.':'El navegador compara la transcripción; no certifica tu pronunciación.';
+ $('pronunciationProgress').textContent=passed.size+' de '+all.length+(reverse?' sons pratiqués':' sonidos practicados');$('pronunciationStreak').textContent=(reverse?'Série : ':'Racha: ')+streak;
+ $('pronunciationBar').style.width=(passed.size/all.length*100)+'%';$('pronunciationTopics').innerHTML='';
+ all.forEach((x,i)=>{const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=(passed.has(i)?'⭐ ':'')+(i+1)+'. '+x.title;b.addEventListener('click',()=>{stop();index=i;streak=0;paint();$('pronunciationTrainer').scrollIntoView({behavior:'smooth',block:'start'})});$('pronunciationTopics').append(b)});
+ const h=document.querySelector('#modulePronunciation .module-heading'),d=document.querySelector('#modulePronunciation .module-description'),stats=document.querySelector('#modulePronunciation .panel:nth-of-type(2) h3'),tips=document.querySelector('#modulePronunciation .panel.note h3'),ul=document.querySelector('#modulePronunciation .panel.note ul');
+ if(h)h.textContent=reverse?'🎙️ Module spécial A1 — Prononcer les sons espagnols':'🎙️ Módulo especial A1 — Domina los sonidos del francés';
+ if(d)d.textContent=reverse?'Entraînez les sons caractéristiques de l’espagnol latino-américain, avec une référence colombienne : R, RR, J, Ñ, voyelles, accentuation et intonation. Écoutez le modèle et pratiquez avec le microphone.':'Entrena la R francesa, las vocales, los sonidos nasales, las consonantes y los enlaces. Escucha el modelo y practica con el micrófono.';
+ if(stats)stats.textContent=reverse?'Votre entraînement de prononciation':'Tu entrenamiento de pronunciación';
+ if(tips)tips.textContent=reverse?'Conseils essentiels pour prononcer l’espagnol':'Consejos esenciales para pronunciar francés';
+ if(ul)ul.innerHTML=reverse?'<li>La R suave y la RR fuerte distinguen palabras como pero y perro.</li><li>La J española /x/ es distinta de la J francesa /ʒ/.</li><li>La Ñ /ɲ/ es una consonante nasal palatal.</li><li>Las cinco vocales españolas mantienen un timbre relativamente estable.</li><li>En Colombia se usa el seseo: S, Z y C ante E/I se pronuncian /s/.</li><li>El acento y la entonación ayudan a distinguir palabras y frases.</li>':'<li>La R française se forme généralement à l’arrière de la bouche.</li><li>La voyelle U /y/ se distingue de OU /u/.</li><li>Les voyelles nasales ne se terminent pas par un N audible.</li><li>Les consonnes finales et les liaisons suivent des règles particulières.</li>';
+ const note=document.querySelector('#modulePronunciation .panel .note');if(note)note.innerHTML=reverse?'<strong>Évaluation :</strong> le navigateur tente de transcrire votre espagnol. Une correspondance répétée indique une pratique, mais ne garantit pas une articulation parfaite. Les accents régionaux sont naturels.':'<strong>Evaluación:</strong> el navegador intenta transcribir lo que dices. Una coincidencia repetida indica práctica, pero no demuestra que la articulación sea perfecta.';
 }
-$('pronunciationModel').addEventListener('click',()=>{if(typeof speak==='function')speak(topics[index].target,null,Number($('rate').value))});
-$('pronunciationNext').addEventListener('click',()=>{stopRecognition();index=(index+1)%topics.length;streak=0;paint()});
+function change(){stop();index=0;streak=0;load();paint()}
+$('pronunciationModel').addEventListener('click',()=>{if(typeof speak==='function')speak(list()[index].target,null,Number($('rate').value))});
+$('pronunciationNext').addEventListener('click',()=>{stop();index=(index+1)%list().length;streak=0;paint()});
 $('pronunciationMic').addEventListener('click',()=>{
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SR){$('pronunciationFeedback').textContent='Este navegador no ofrece reconocimiento de voz. Prueba Chrome actualizado y concede permiso al micrófono.';return}
- stopRecognition();const t=topics[index];recognition=new SR();recognition.lang='fr-FR';recognition.interimResults=false;recognition.maxAlternatives=5;
- $('pronunciationFeedback').textContent='Escuchando… Pronuncia «'+t.target+'» con naturalidad, sin gritar ni forzar la garganta.';
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('pronunciationFeedback').textContent='No se ofrece reconocimiento de voz en este navegador. Prueba Chrome actualizado y concede permiso al micrófono.';return}
+ stop();const t=list()[index];recognition=new SR();recognition.lang=lang();recognition.interimResults=false;recognition.maxAlternatives=5;
+ $('pronunciationFeedback').textContent=courseDirection==='es-fr'?'Écoute en cours… Prononce «'+t.target+'» naturellement.':'Escuchando… Pronuncia «'+t.target+'» con naturalidad.';
  recognition.onresult=e=>{
-  const alternatives=[...e.results[0]].map(x=>({text:x.transcript.trim(),confidence:x.confidence||0}));
-  const norm=x=>x.toLocaleLowerCase('fr-FR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z\s]/g,'').trim().replace(/\s+/g,' ');
-  const expected=norm(t.target),match=alternatives.find(x=>norm(x.text)===expected),best=alternatives[0];
-  if(match){streak++;if(streak>=3){passed.add(index);save();$('pronunciationFeedback').textContent='Tres coincidencias consecutivas. Objetivo registrado como practicado. Esto confirma coincidencia de transcripción, no perfección fonética.';paint()}else $('pronunciationFeedback').textContent='Coincidencia '+streak+'/3. Repite para consolidar. El reconocimiento no mide por sí solo la articulación.'}
-  else{streak=0;$('pronunciationFeedback').textContent='No coincide con el modelo. Vuelve a escuchar, revisa la posición de la lengua y los labios e inténtalo otra vez.'}
-  $('pronunciationTranscript').textContent='El navegador oyó: «'+best.text+'» · confianza estimada del reconocedor: '+Math.round(best.confidence*100)+'% · objetivo: «'+t.target+'».';
-  $('pronunciationStreak').textContent='Racha: '+streak;
+  const alts=[...e.results[0]].map(x=>({text:x.transcript.trim(),confidence:x.confidence||0}));
+  const norm=x=>x.toLocaleLowerCase(courseDirection==='es-fr'?'es-CO':'fr-FR').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zñ\s]/g,'').trim().replace(/\s+/g,' ');
+  const expected=norm(t.target),match=alts.find(x=>norm(x.text)===expected),best=alts[0];
+  if(match){streak++;if(streak>=3){passed.add(index);save();$('pronunciationFeedback').textContent=courseDirection==='es-fr'?'Trois transcriptions concordantes. Objectif enregistré comme pratiqué, sans certification phonétique.':'Tres coincidencias consecutivas. Objetivo registrado como practicado, sin certificación fonética.';paint()}else $('pronunciationFeedback').textContent=(courseDirection==='es-fr'?'Correspondance ':'Coincidencia ')+streak+'/3.'}
+  else{streak=0;$('pronunciationFeedback').textContent=courseDirection==='es-fr'?'La transcription ne correspond pas au modèle. Réécoutez et réessayez.':'La transcripción no coincide con el modelo. Escucha e inténtalo otra vez.'}
+  $('pronunciationTranscript').textContent=(courseDirection==='es-fr'?'Le navigateur a reconnu : ':'El navegador reconoció: ')+'«'+best.text+'» · '+Math.round(best.confidence*100)+'% · '+(courseDirection==='es-fr'?'modèle : ':'modelo: ')+'«'+t.target+'»';
+  $('pronunciationStreak').textContent=(courseDirection==='es-fr'?'Série : ':'Racha: ')+streak;
  };
- recognition.onerror=e=>{$('pronunciationFeedback').textContent='No se pudo reconocer la voz ('+e.error+'). Comprueba el permiso del micrófono, la conexión y vuelve a intentarlo.';recognition=null};
- recognition.onend=()=>{recognition=null};
- try{recognition.start()}catch(e){$('pronunciationFeedback').textContent='No se pudo iniciar el micrófono. Espera un momento y vuelve a intentarlo.';recognition=null}
+ recognition.onerror=e=>{$('pronunciationFeedback').textContent=(courseDirection==='es-fr'?'Erreur : ':'Error: ')+e.error;recognition=null};recognition.onend=()=>{recognition=null};
+ try{recognition.start()}catch(e){$('pronunciationFeedback').textContent='No se pudo iniciar el micrófono. Inténtalo de nuevo.';recognition=null}
 });
-paint();
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='courseDirectionToggle')setTimeout(()=>{if(prev!==courseDirection){prev=courseDirection;change()}},0)});
+load();paint();
+})();
+</script>>
+
+<script>
+(function(){
+ const $=id=>document.getElementById(id);let old=courseDirection;
+ function sync(){
+  const reverse=courseDirection==='es-fr',note=document.querySelector('#moduleAlphabet .panel.note');
+  if(note)note.innerHTML=reverse?'<strong>À propos de l’alphabet :</strong> l’alphabet espagnol compte 27 lettres, dont Ñ. Entraînez-vous à prononcer le nom des lettres en espagnol.<br><br><strong>Audio :</strong> utilisez de préférence une voix es-CO ou es-MX pour cette référence latino-américaine.':'<strong>Una nota importante:</strong> el alfabeto francés tiene 26 letras. La Ñ pertenece al alfabeto español y no tiene una letra equivalente propia en francés. En esa tarjeta puedes escuchar una explicación en francés.<br><br><strong>Sobre el audio:</strong> la aplicación utiliza la voz francesa instalada en tu dispositivo.';
+  const label=document.querySelector('label[for="voice"]');if(label)label.textContent=reverse?'Voix espagnole :':'Voz francesa:';
+  const play=$('playAll');if(play)play.textContent=reverse?'▶ Écouter l’alphabet espagnol':'▶ Escuchar alfabeto';
+ }
+ document.addEventListener('click',e=>{if(e.target&&e.target.id==='courseDirectionToggle')setTimeout(()=>{if(old!==courseDirection){old=courseDirection;sync()}},0)});sync();
 })();
 </script>
 
