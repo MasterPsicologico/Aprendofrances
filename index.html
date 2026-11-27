@@ -734,7 +734,7 @@ function translateA1StaticContent(){
  const root=$('modulePicker')?.closest('main')||document.body;
  root.querySelectorAll('.module-view:not([hidden])').forEach(view=>{
   const walker=document.createTreeWalker(view,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
-  nodes.forEach(node=>{const original=node.nodeValue.trim();if(!original)return;let translated=map[original];if(!translated){for(const [es,fr] of Object.entries(map)){if(original===es){translated=fr;break}}}if(translated)node.nodeValue=node.nodeValue.replace(original,translated)});
+  nodes.forEach(node=>{if(!Object.prototype.hasOwnProperty.call(node,'__aprendoOriginal'))node.__aprendoOriginal=node.nodeValue;const original=node.__aprendoOriginal.trim();if(!original)return;const translated=courseDirection==='es-fr'?map[original]:original;if(translated)node.nodeValue=node.__aprendoOriginal.replace(original,translated)});
  });
  const toggle=$('courseDirectionToggle');if(toggle){const fr=courseDirection==='es-fr';toggle.textContent=fr?'🇫🇷 Français':'🇪🇸 Español';$('courseDirectionLabel').textContent=fr?'Vous apprenez l’espagnol · Interface en français':'Aprendes francés · Interfaz en español'}
 }
@@ -1082,16 +1082,16 @@ startPractice();
  }
  function renderExam(){
   const q=exam[examAt];if(!q)return;
-  examLocked=false;$('examProgress').textContent='Pregunta '+(examAt+1)+' de '+exam.length;$('examScore').textContent='Aciertos: '+examPoints;$('examBar').style.width=(examAt/exam.length*100)+'%';$('examFeedback').textContent='';$('examOptions').innerHTML='';$('examInputWrap').hidden=q.kind!==2;$('examInput').value='';$('examCheck').disabled=false;$('examNext').disabled=true;
-  $('examKind').textContent=['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?'Escucha y elige la traducción correcta.':q.kind===2?q.es:q.fr;
-  if(q.kind!==2){const opts=shuffled([q.es,...shuffled(exam.filter(x=>x.es!==q.es).map(x=>x.es)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
+  examLocked=false;$('examProgress').textContent=(courseDirection==='es-fr'?'Question ':'Pregunta ')+(examAt+1)+(courseDirection==='es-fr'?' sur ':' de ')+exam.length;$('examScore').textContent=(courseDirection==='es-fr'?'Bonnes réponses : ':'Aciertos: ')+examPoints;$('examBar').style.width=(examAt/exam.length*100)+'%';$('examFeedback').textContent='';$('examOptions').innerHTML='';$('examInputWrap').hidden=q.kind!==2;$('examInput').value='';$('examCheck').disabled=false;$('examNext').disabled=true;
+  const reverse=courseDirection==='es-fr';$('examKind').textContent=reverse?['TRADUIS EN ESPAGNOL','ÉCOUTE ET RECONNAIS','ÉCRIS EN ESPAGNOL'][q.kind]:['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?(reverse?'Écoute et choisis la bonne traduction.':'Escucha y elige la traducción correcta.'):reverse?q.fr:q.kind===2?q.es:q.fr;
+  if(q.kind!==2){const correct=reverse?q.fr:q.es;const opts=shuffled([correct,...shuffled(exam.filter(x=>(reverse?x.fr:x.es)!==correct).map(x=>reverse?x.fr:x.es)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
  }
- $('examHear').addEventListener('click',()=>{if(exam[examAt]&&typeof speak==='function')speak(exam[examAt].fr)});
+ $('examHear').addEventListener('click',()=>{if(exam[examAt]&&typeof speak==='function')speak(courseDirection==='es-fr'?exam[examAt].es:exam[examAt].fr)});
  $('examCheck').addEventListener('click',()=>{
   if(examLocked||!exam.length)return;const q=exam[examAt],ans=q.kind===2?$('examInput').value:$('examOptions').dataset.answer;
   if(!ans){$('examFeedback').textContent='Primero selecciona o escribe una respuesta.';return}
-  const ok=q.kind===2?clean(ans)===clean(q.fr):ans===q.es;examLocked=true;
-  $('examFeedback').textContent=ok?'¡Correcto! '+q.fr+' — '+q.es:'Respuesta correcta: '+q.fr+' — '+q.es;$('examFeedback').className='exercise-feedback '+(ok?'good':'bad');
+  const reverse=courseDirection==='es-fr',expected=reverse?q.es:q.kind===2?q.fr:q.es;const ok=clean(ans)===clean(expected);examLocked=true;
+  $('examFeedback').textContent=reverse?(ok?'Correct !':'Bonne réponse : '+q.es+' — '+q.fr):(ok?'¡Correcto! '+q.fr+' — '+q.es:'Respuesta correcta: '+q.fr+' — '+q.es);$('examFeedback').className='exercise-feedback '+(ok?'good':'bad');
   if(ok)examPoints++;else addReview(q);
   $('examScore').textContent='Aciertos: '+examPoints;$('examCheck').disabled=true;$('examNext').disabled=false;
  });
@@ -1397,23 +1397,23 @@ function beginQuiz(mode){
  $('curriculumQuiz').hidden=false;renderQuestion();
 }
 function renderQuestion(){
- const q=quiz[qi];locked=false;$('curriculumQuizProgress').textContent='Pregunta '+(qi+1)+' de '+quiz.length;$('curriculumQuizScore').textContent='Aciertos: '+score;
- $('curriculumQuizPrompt').textContent='¿Qué significa «'+q.fr+'»?';
+ const q=quiz[qi],reverse=courseDirection==='es-fr';locked=false;$('curriculumQuizProgress').textContent=(reverse?'Question ':'Pregunta ')+(qi+1)+(reverse?' sur ':' de ')+quiz.length;$('curriculumQuizScore').textContent=(reverse?'Bonnes réponses : ':'Aciertos: ')+score;
+ $('curriculumQuizPrompt').textContent=reverse?'Que signifie «'+q.es+'» en espagnol ?':'¿Qué significa «'+q.fr+'»?';
  $('curriculumQuizOptions').innerHTML='';$('curriculumQuizFeedback').textContent='';$('curriculumQuizOptions').dataset.answer='';
- const others=quiz.filter(x=>x.es!==q.es).map(x=>x.es);const opts=[q.es];
+ const correct=reverse?q.fr:q.es;const others=quiz.filter(x=>(reverse?x.fr:x.es)!==correct).map(x=>reverse?x.fr:x.es);const opts=[correct];
  while(opts.length<Math.min(4,quiz.length)){const v=others[Math.floor(Math.random()*others.length)];if(v&&!opts.includes(v))opts.push(v);if(opts.length>=4)break}
  opts.sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(locked)return;$('curriculumQuizOptions').dataset.answer=v;$('curriculumQuizOptions').querySelectorAll('button').forEach(x=>x.classList.toggle('chosen',x===b))});$('curriculumQuizOptions').append(b)});
  $('curriculumQuizCheck').disabled=false;$('curriculumQuizNext').disabled=true;$('curriculumQuizNext').textContent=qi===quiz.length-1?'Ver resultado':'Siguiente';
 }
 function check(){
- if(locked)return;const answer=$('curriculumQuizOptions').dataset.answer;if(!answer){$('curriculumQuizFeedback').textContent='Selecciona una respuesta.';return}
- locked=true;const q=quiz[qi],ok=answer===q.es;if(ok)score++;$('curriculumQuizFeedback').textContent=ok?'¡Correcto!':'Respuesta correcta: '+q.es;$('curriculumQuizFeedback').className='exercise-feedback '+(ok?'good':'bad');$('curriculumQuizScore').textContent='Aciertos: '+score;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').disabled=false;
+ if(locked)return;const answer=$('curriculumQuizOptions').dataset.answer;if(!answer){$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?'Sélectionnez une réponse.':'Selecciona una respuesta.';return}
+ locked=true;const q=quiz[qi],correct=courseDirection==='es-fr'?q.fr:q.es,ok=answer===correct;if(ok)score++;$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?(ok?'Correct !':'Bonne réponse : '+q.fr):(ok?'¡Correcto!':'Respuesta correcta: '+q.es);$('curriculumQuizFeedback').className='exercise-feedback '+(ok?'good':'bad');$('curriculumQuizScore').textContent='Aciertos: '+score;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').disabled=false;
 }
 function finish(){
  const pct=Math.round(score/quiz.length*100),s=state();s[currentLevel]=s[currentLevel]||{modules:{},certified:false};
  if(quizMode==='module'){
   if(pct>=80)s[currentLevel].modules[currentModule]=true;
-  $('curriculumQuizFeedback').textContent='Resultado: '+score+'/'+quiz.length+' · '+pct+'%. '+(pct>=80?'Módulo aprobado y marcado en dorado.':'Necesitas 80% para aprobar este módulo. Puedes repetirlo.');
+  $('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?'Résultat : '+score+'/'+quiz.length+' · '+pct+' %. '+(pct>=80?'Module réussi.':'Il faut obtenir 80 % pour réussir ce module. Vous pouvez réessayer.'):'Resultado: '+score+'/'+quiz.length+' · '+pct+'%. '+(pct>=80?'Módulo aprobado y marcado en dorado.':'Necesitas 80% para aprobar este módulo. Puedes repetirlo.');
  }else{
   const approved=Object.keys(s[currentLevel].modules||{}).length;
   const allModulesPassed=approved===levels[currentLevel].modules.length;
@@ -1708,6 +1708,26 @@ $('pronunciationMic').addEventListener('click',()=>{
  try{recognition.start()}catch(e){$('pronunciationFeedback').textContent='No se pudo iniciar el micrófono. Espera un momento y vuelve a intentarlo.';recognition=null}
 });
 paint();
+})();
+</script>
+
+<script>
+/* Couche bilingue complémentaire : interface, navigation et consignes d'évaluation. */
+(function(){
+ const $=id=>document.getElementById(id);
+ const ui={
+ 'Selecciona una clase:':'Choisissez une leçon :','Seleccionar módulo de aprendizaje':'Choisir un module d’apprentissage','Voz francesa:':'Voix espagnole :','Detectar voz francesa automáticamente':'Détecter automatiquement la voix espagnole','Velocidad:':'Vitesse :','▶ Escuchar alfabeto':'▶ Écouter l’alphabet','⏸ Pausar':'⏸ Pause','■ Detener':'■ Arrêter','Preparando las voces disponibles… Para escuchar correctamente, permite el audio del navegador y selecciona una voz que indique francés (fr-FR o fr-CA).':'Préparation des voix disponibles… Pour écouter correctement, autorisez l’audio du navigateur et choisissez une voix espagnole (es-ES ou es-MX).',
+ '¿Qué quieres estudiar?':'Que souhaitez-vous étudier ?','🔤 Abecedario':'🔤 Alphabet','📚 Clases A1':'📚 Cours A1','🎓 Laboratorio de práctica':'🎓 Laboratoire de pratique','✍️ Práctica interactiva':'✍️ Exercices interactifs','📈 Mi progreso':'📈 Ma progression','🗓️ Seguimiento e historial':'🗓️ Suivi et historique','🏆 Ruta completa A1–C2':'🏆 Parcours complet A1–C2','🧠 Memoria inteligente':'🧠 Mémoire intelligente','Elige una clase':'Choisissez une leçon','Abecedario · Inicio':'Alphabet · Accueil','Clases · Contenido A1':'Cours · Contenu A1','Laboratorio · Herramientas':'Laboratoire · Outils','Práctica · Ejercicios':'Pratique · Exercices','Mi progreso · Resultados':'Ma progression · Résultats','Seguimiento · Repasos e historial':'Suivi · Révisions et historique','Ruta completa · A1 a C2':'Parcours complet · A1 à C2','Memoria inteligente · Tarjetas y repasos':'Mémoire intelligente · Cartes et révisions',
+ '🎓 Laboratorio de práctica avanzada':'🎓 Laboratoire de pratique avancée','Examen del módulo':'Évaluation du module','Ordenar palabras':'Remettre les mots en ordre','Dictado':'Dictée','Practicar pronunciación':'Pratiquer la prononciation','Repasar errores':'Revoir les erreurs','Examen final del módulo':'Évaluation finale du module','20 preguntas variadas para comprobar lo que recuerdas. Al finalizar recibirás un nivel orientativo.':'20 questions variées pour vérifier vos acquis. À la fin, vous recevrez une indication de votre niveau.','▶ Comenzar examen':'▶ Commencer l’évaluation','Comenzar examen':'Commencer l’évaluation','Primero selecciona o escribe una respuesta.':'Sélectionnez ou saisissez d’abord une réponse.','Resultado final':'Résultat final','Siguiente':'Suivant','Otra oración':'Une autre phrase','Escucha y escribe la frase.':'Écoutez et écrivez la phrase.','¡Muy bien! Dictado correcto.':'Très bien ! Dictée correcte.','La respuesta modelo es:':'La réponse modèle est :','Tu navegador no ofrece reconocimiento de voz. Prueba con Chrome actualizado y permite el acceso al micrófono.':'Votre navigateur ne propose pas la reconnaissance vocale. Essayez une version récente de Chrome et autorisez l’accès au microphone.',
+ 'Módulo aprobado y marcado en dorado.':'Module validé.','Necesitas 80% para aprobar este módulo. Puedes repetirlo.':'Vous devez obtenir 80 % pour valider ce module. Vous pouvez réessayer.','Selecciona una respuesta.':'Sélectionnez une réponse.','Pregunta':'Question','Aciertos':'Bonnes réponses','Examen terminado':'Évaluation terminée','Resultado:':'Résultat :','Nivel orientativo:':'Niveau indicatif :','Recomendación:':'Conseil :'
+ };
+ const original=new WeakMap();
+ function translateTree(root){if(!root)return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{if(!original.has(n))original.set(n,n.nodeValue);const base=original.get(n),trim=base.trim();if(!trim)return;const val=courseDirection==='es-fr'?(ui[trim]||trim):base;if(val!==trim||base.trim()!==trim)n.nodeValue=base.replace(trim,val)});}
+ function apply(){const reverse=courseDirection==='es-fr';document.documentElement.lang=reverse?'fr':'es';document.title=reverse?'Mon cours d’espagnol':'Mi alfabeto francés';translateTree(document.querySelector('header'));translateTree($('appNavigation'));translateTree($('advancedPracticeLab'));translateTree($('learningProgress'));translateTree($('learningDashboard'));translateTree($('fullCurriculum'));translateTree($('memoryCenter'));if($('courseDirectionLabel'))$('courseDirectionLabel').textContent=reverse?'Vous apprenez l’espagnol · Interface en français':'Aprendes francés · Interfaz en español';}
+ document.addEventListener('click',e=>{if(e.target&&e.target.id==='courseDirectionToggle')setTimeout(apply,0)});
+ document.addEventListener('change',e=>{if(e.target&&['sectionPicker','modulePicker'].includes(e.target.id))setTimeout(apply,0)});
+ const observer=new MutationObserver(()=>{if(courseDirection==='es-fr'){apply()}});observer.observe(document.body,{subtree:true,childList:true});
+ window.applyAprendoFrenchInterface=apply;
 })();
 </script>
 </body>
