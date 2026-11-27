@@ -46,6 +46,7 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 .vocab-card .pronunciation{font-size:13px;color:var(--green)}
 .vocab-card .context{font-size:13px;color:var(--muted);line-height:1.45;flex:1}
 .vocab-card button{align-self:flex-start}
+.card-speed{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted,#667085);margin:8px 0}.card-speed input{width:min(150px,48%);accent-color:var(--blue,#2860c5)}.card-speed span{font-weight:700;color:var(--text,#263247)}
 .vocab-card.is-speaking,.vocab-card.is-speaking:focus-within{border:2px solid #d5a323;background:linear-gradient(145deg,#fff9df,#fff);box-shadow:0 0 0 4px #f3d77855,0 12px 28px #b8861b22;transform:translateY(-2px);transition:background .2s,border .2s,box-shadow .2s,transform .2s}
 .vocab-card.is-speaking .french-word{color:#9a6900}
 .vocab-card{scroll-margin-block:32vh}
@@ -448,12 +449,12 @@ function highlightStudyCard(text,preferred,scroll){
  return card;
 }
 function clearAllAudioHighlights(){clearLetterHighlight();clearStudyHighlights()}
-function speak(text,cardElement){
+function speak(text,cardElement,individualRate){
  if(!('speechSynthesis' in window)){$('status').textContent='Este navegador no admite lectura de voz. Prueba con Chrome o Edge actualizado.';return}
  queueToken++;speechSynthesis.cancel();audioMode='single';setPauseButton(false);clearAllAudioHighlights();
  const utter=new SpeechSynthesisUtterance(text);
  const voice=getVoice(); if(voice){utter.voice=voice;utter.lang=voice.lang}else{utter.lang='fr-FR'}
- utter.rate=Number($('rate').value);utter.pitch=1;
+ utter.rate=Math.max(.55,Math.min(1.15,Number(individualRate)||Number($('rate').value)));utter.pitch=1;
  utter.onstart=()=>{$('status').textContent='Reproduciendo con '+(voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo')+'.';if(cardElement)highlightStudyCard(text,cardElement,true);else if($('modulePicker').value==='alphabet')highlightLetter($('selectedLetter').textContent,true);setPauseButton(false)};
  utter.onend=()=>{if(audioMode==='single'){$('status').textContent='Reproducción terminada.';audioMode='idle';clearAllAudioHighlights();setPauseButton(false)}};
  utter.onerror=()=>{if(audioMode==='single'){$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.';audioMode='idle';clearAllAudioHighlights();setPauseButton(false)}};
@@ -559,8 +560,13 @@ function renderCards(items,gridId){
   const translation=document.createElement('div');translation.className='translation';translation.textContent=item.es;
   const pron=document.createElement('div');pron.className='pronunciation';pron.textContent='Pronunciación aproximada: '+item.pron;
   const note=document.createElement('div');note.className='context';note.textContent=item.note;
-  const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='🔊 Escuchar';btn.addEventListener('click',()=>speak(item.fr,card));
-  card.append(word,translation,pron,note,btn);grid.appendChild(card);
+  const speedWrap=document.createElement('label');speedWrap.className='card-speed';speedWrap.textContent='Velocidad individual: ';
+  const speedValue=document.createElement('span');speedValue.textContent=Number($('rate').value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×';
+  const speed=document.createElement('input');speed.type='range';speed.min='0.55';speed.max='1.15';speed.step='0.05';speed.value=$('rate').value;speed.setAttribute('aria-label','Velocidad de pronunciación para '+item.fr);
+  speed.addEventListener('input',()=>{speedValue.textContent=Number(speed.value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×'});
+  speedWrap.append(speed,speedValue);
+  const btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent='🔊 Escuchar';btn.addEventListener('click',()=>speak(item.fr,card,Number(speed.value)));
+  card.append(word,translation,pron,note,speedWrap,btn);grid.appendChild(card);
  });
 }
 function speakSequence(items,statusText,doneText){
@@ -700,8 +706,12 @@ function renderGreetings(){
   const pron=document.createElement('div');pron.className='pronunciation';pron.textContent='Pronunciación aproximada: '+item.pron;
   const note=document.createElement('div');note.className='context';note.textContent=item.note;
   const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='🔊 Escuchar';
-  button.setAttribute('aria-label','Escuchar '+item.fr);button.addEventListener('click',()=>speak(item.fr,card));
-  card.append(word,translation,pron,note,button);grid.appendChild(card);
+  const speedWrap=document.createElement('label');speedWrap.className='card-speed';speedWrap.textContent='Velocidad individual: ';
+  const speedValue=document.createElement('span');speedValue.textContent=Number($('rate').value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×';
+  const speed=document.createElement('input');speed.type='range';speed.min='0.55';speed.max='1.15';speed.step='0.05';speed.value=$('rate').value;speed.setAttribute('aria-label','Velocidad de pronunciación para '+item.fr);
+  speed.addEventListener('input',()=>{speedValue.textContent=Number(speed.value).toFixed(2).replace(/0+$/,'').replace(/\\.$/,'')+'×'});
+  button.setAttribute('aria-label','Escuchar '+item.fr);button.addEventListener('click',()=>speak(item.fr,card,Number(speed.value)));
+  card.append(word,translation,pron,note,speedWrap,button);grid.appendChild(card);
  });
 }
 function applySelectedModule(){
@@ -715,19 +725,7 @@ function applySelectedModule(){
  $('status').textContent=labels[key]||'Módulo seleccionado.';
 }
 $('modulePicker').addEventListener('change',applySelectedModule);
-$('playGreetings').addEventListener('click',async()=>{
- if(!('speechSynthesis'in window))return;
- speechSynthesis.cancel();const token=++queueToken;const v=getVoice();const rate=Number($('rate').value);
- $('status').textContent='Reproduciendo el vocabulario de saludos…';
- for(const item of greetings){
-  if(token!==queueToken)return;
-  await new Promise(resolve=>{
-   const u=new SpeechSynthesisUtterance(item.fr);if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';u.rate=rate;
-   u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u);
-  });
- }
- if(token===queueToken)$('status').textContent='¡Clase terminada! Puedes repetir cualquier expresión.';
-});
+$('playGreetings').addEventListener('click',()=>speakSequence(greetings.map(x=>x.fr),'Reproduciendo el vocabulario de saludos…','¡Clase terminada! Puedes repetir cualquier expresión.'));
 renderGreetings();
 renderCards(introductions,'introductionsGrid');
 renderCards(pronouns,'pronounsGrid');
