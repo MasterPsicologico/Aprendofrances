@@ -467,7 +467,7 @@ function speak(text,cardElement,individualRate){
  const token=++queueToken;audioMode='single';setPauseButton(false);clearAllAudioHighlights();
  speechSynthesis.cancel();speechSynthesis.resume();
  const utter=new SpeechSynthesisUtterance(text);
- const voice=getVoice(); if(voice){utter.voice=voice;utter.lang=voice.lang}else{utter.lang='fr-FR'}
+ const voice=courseDirection==='es-fr'?(speechSynthesis.getVoices().find(v=>/^es(-|$)/i.test(v.lang))||null):getVoice(); if(voice){utter.voice=voice;utter.lang=voice.lang}else{utter.lang=courseDirection==='es-fr'?'es-ES':'fr-FR'}
  utter.rate=Math.max(.55,Math.min(1.15,Number(individualRate)||Number($('rate').value)));utter.pitch=1;
  utter.onstart=()=>{if(token!==queueToken)return;$('status').textContent='Reproduciendo con '+(voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo')+'.';if(cardElement)highlightStudyCard(text,cardElement,true);else if($('modulePicker').value==='alphabet')highlightLetter($('selectedLetter').textContent,true);setPauseButton(false)};
  utter.onend=()=>{if(token===queueToken&&audioMode==='single'){$('status').textContent='Reproducción terminada.';audioMode='idle';clearAllAudioHighlights();setPauseButton(false)}};
@@ -644,7 +644,8 @@ function speakSequence(items,statusText,doneText){
   if(token!==queueToken)return;
   if(index>=items.length){audioMode='idle';clearAllAudioHighlights();setPauseButton(false);$('status').textContent=doneText;return}
   const phrase=items[index++],u=new SpeechSynthesisUtterance(phrase);
-  if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';
+  const activeVoice=courseDirection==='es-fr'?(speechSynthesis.getVoices().find(x=>/^es(-|$)/i.test(x.lang))||null):v;
+  if(activeVoice){u.voice=activeVoice;u.lang=activeVoice.lang}else u.lang=courseDirection==='es-fr'?'es-ES':'fr-FR';
   u.rate=Number($('rate').value);
   u.onstart=()=>{if(token!==queueToken)return;highlightStudyCard(phrase,null,true);setPauseButton(false)};
   u.onend=()=>{if(token===queueToken){clearStudyHighlights();next()}};
