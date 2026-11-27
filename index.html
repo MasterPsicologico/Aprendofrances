@@ -970,46 +970,38 @@ function startPractice(){
 }
 function renderExercise(){
  selectedAnswer=null;exerciseLocked=false;
- const item=exerciseList[exerciseIndex];const kind=exerciseIndex%3;
- $('practiceProgress').textContent='Pregunta '+(exerciseIndex+1)+' de '+exerciseList.length;
- $('practiceScore').textContent='Aciertos: '+exerciseScore;
+ const item=exerciseList[exerciseIndex],kind=exerciseIndex%3,reverse=courseDirection==='es-fr';
+ const prompt=reverse?item.fr:item.es,answer=reverse?item.es:item.fr;
+ $('practiceProgress').textContent=(reverse?'Question ':'Pregunta ')+(exerciseIndex+1)+(reverse?' sur ':' de ')+exerciseList.length;
+ $('practiceScore').textContent=(reverse?'Bonnes réponses : ':'Aciertos: ')+exerciseScore;
  $('practiceBar').style.width=(exerciseIndex/exerciseList.length*100)+'%';
  $('exerciseOptions').innerHTML='';$('exerciseFeedback').textContent='';$('exerciseFeedback').className='exercise-feedback';
  $('exerciseInputWrap').hidden=kind!==2;$('checkChoice').hidden=kind===2;$('checkTyped').disabled=false;$('exerciseInput').value='';
- if(kind===0){
-  $('exerciseKind').textContent='ELIGE LA TRADUCCIÓN CORRECTA';
-  $('exercisePrompt').textContent=item.fr;
-  $('exerciseHint').textContent='¿Qué significa esta expresión en español?';
-  const distractors=exerciseList.filter((x,i)=>i!==exerciseIndex&&x.es!==item.es).map(x=>x.es);
-  const opts=[item.es,...distractors.slice(0,3)].sort(()=>Math.random()-.5);
-  opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(exerciseLocked)return;selectedAnswer=v;document.querySelectorAll('#exerciseOptions button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen')});$('exerciseOptions').appendChild(b)});
- }else if(kind===1){
-  $('exerciseKind').textContent='ESCUCHA Y RECONOCE';
-  $('exercisePrompt').textContent='Escucha la expresión y selecciona su significado.';
-  $('exerciseHint').textContent='Pulsa «Escuchar» y después elige la traducción.';
-  const distractors=exerciseList.filter((x,i)=>i!==exerciseIndex&&x.es!==item.es).map(x=>x.es);
-  [item.es,...distractors.slice(0,3)].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(exerciseLocked)return;selectedAnswer=v;document.querySelectorAll('#exerciseOptions button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen')});$('exerciseOptions').appendChild(b)});
+ if(kind===0||kind===1){
+  $('exerciseKind').textContent=reverse?(kind===0?'CHOISISSEZ LA TRADUCTION ESPAGNOLE':'ÉCOUTEZ ET RECONNAISSEZ'):(kind===0?'ELIGE LA TRADUCCIÓN FRANCESA':'ESCUCHA Y RECONOCE');
+  $('exercisePrompt').textContent=kind===0?prompt:(reverse?'Écoutez la phrase française et choisissez sa traduction espagnole.':'Escucha la frase en español y selecciona su traducción francesa.');
+  $('exerciseHint').textContent=reverse?'Choisissez la phrase correcte en espagnol.':'Elige la expresión correcta en francés.';
+  const distractors=exerciseList.filter((x,i)=>i!==exerciseIndex&&(reverse?x.es!==answer:x.fr!==answer)).map(x=>reverse?x.es:x.fr);
+  [answer,...distractors.slice(0,3)].sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(exerciseLocked)return;selectedAnswer=v;document.querySelectorAll('#exerciseOptions button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen')});$('exerciseOptions').appendChild(b)});
  }else{
-  $('exerciseKind').textContent='ESCRIBE EN FRANCÉS';
-  $('exercisePrompt').textContent=item.es;
-  $('exerciseHint').textContent='Escribe la expresión francesa que corresponde. No te preocupes por mayúsculas ni signos de puntuación.';
+  $('exerciseKind').textContent=reverse?'ÉCRIVEZ EN ESPAGNOL':'ESCRIBE EN FRANCÉS';
+  $('exercisePrompt').textContent=prompt;$('exerciseHint').textContent=reverse?'Écrivez l’expression espagnole correspondante.':'Escribe la expresión francesa correspondiente.';
  }
- $('nextExercise').disabled=true;$('nextExercise').textContent=exerciseIndex===exerciseList.length-1?'Ver resultado':'Siguiente →';
+ $('nextExercise').disabled=true;
 }
 function checkExercise(){
  if(exerciseLocked)return;
- const item=exerciseList[exerciseIndex],kind=exerciseIndex%3;
- const answer=kind===2?$('exerciseInput').value:selectedAnswer;
- if(!answer){$('exerciseFeedback').textContent='Selecciona o escribe una respuesta antes de comprobar.';return}
- const correct=kind===2?norm(answer)===norm(item.fr):answer===item.es;
- exerciseLocked=true;
- if(correct){exerciseScore++;$('exerciseFeedback').textContent='¡Muy bien! '+item.fr+' = '+item.es;$('exerciseFeedback').className='exercise-feedback good'}
- else{$('exerciseFeedback').textContent='Todavía no. La respuesta correcta es: '+item.fr+' = '+item.es;$('exerciseFeedback').className='exercise-feedback bad'}
- if(kind!==2)document.querySelectorAll('#exerciseOptions button').forEach(b=>{if(b.textContent===item.es)b.classList.add('correct');else if(b.textContent===answer)b.classList.add('wrong')});
- $('practiceScore').textContent='Aciertos: '+exerciseScore;$('nextExercise').disabled=false;
+ const item=exerciseList[exerciseIndex],kind=exerciseIndex%3,reverse=courseDirection==='es-fr';
+ const expected=reverse?item.es:item.fr,answer=kind===2?$('exerciseInput').value:selectedAnswer;
+ if(!answer){$('exerciseFeedback').textContent=reverse?'Sélectionnez ou écrivez une réponse.':'Selecciona o escribe una respuesta antes de comprobar.';return}
+ const correct=norm(answer)===norm(expected);exerciseLocked=true;
+ if(correct){exerciseScore++;$('exerciseFeedback').textContent=reverse?'Très bien ! '+item.es+' = '+item.fr:'¡Muy bien! '+item.es+' = '+item.fr;$('exerciseFeedback').className='exercise-feedback good'}
+ else{$('exerciseFeedback').textContent=reverse?'Réponse correcte : '+item.es+' = '+item.fr:'Todavía no. La respuesta correcta es: '+item.fr+' = '+item.es;$('exerciseFeedback').className='exercise-feedback bad'}
+ if(kind!==2)document.querySelectorAll('#exerciseOptions button').forEach(b=>{if(b.textContent===expected)b.classList.add('correct');else if(b.textContent===answer)b.classList.add('wrong')});
+ $('practiceScore').textContent=(reverse?'Bonnes réponses : ':'Aciertos: ')+exerciseScore;$('nextExercise').disabled=false;
 }
 $('checkChoice').addEventListener('click',checkExercise);$('checkTyped').addEventListener('click',checkExercise);
-$('hearExercise').addEventListener('click',()=>speak(exerciseList[exerciseIndex].fr));
+$('hearExercise').addEventListener('click',()=>speak(courseDirection==='es-fr'?exerciseList[exerciseIndex].es:exerciseList[exerciseIndex].fr));
 $('nextExercise').addEventListener('click',()=>{if(!exerciseLocked)return;if(exerciseIndex<exerciseList.length-1){exerciseIndex++;renderExercise()}else{const pct=Math.round(exerciseScore/exerciseList.length*100);$('exerciseKind').textContent='RESULTADO FINAL';$('exercisePrompt').textContent='Has obtenido '+exerciseScore+' de '+exerciseList.length+' aciertos.';$('exerciseHint').textContent=pct>=80?'¡Excelente trabajo! Sigue practicando para consolidarlo.':'Buen intento. Repite la práctica y escucha las palabras que te resultaron difíciles.';$('exerciseOptions').innerHTML='';$('exerciseInputWrap').hidden=true;$('checkChoice').hidden=true;$('nextExercise').disabled=true;$('practiceBar').style.width='100%';$('exerciseFeedback').textContent='Puntuación: '+pct+'%';}});
 $('restartPractice').addEventListener('click',startPractice);
 $('modulePicker').addEventListener('change',startPractice);
@@ -1081,14 +1073,14 @@ startPractice();
  function renderExam(){
   const q=exam[examAt];if(!q)return;
   examLocked=false;$('examProgress').textContent=(courseDirection==='es-fr'?'Question ':'Pregunta ')+(examAt+1)+(courseDirection==='es-fr'?' sur ':' de ')+exam.length;$('examScore').textContent=(courseDirection==='es-fr'?'Bonnes réponses : ':'Aciertos: ')+examPoints;$('examBar').style.width=(examAt/exam.length*100)+'%';$('examFeedback').textContent='';$('examOptions').innerHTML='';$('examInputWrap').hidden=q.kind!==2;$('examInput').value='';$('examCheck').disabled=false;$('examNext').disabled=true;
-  const reverse=courseDirection==='es-fr';$('examKind').textContent=reverse?['TRADUISEZ EN ESPAGNOL','ÉCOUTEZ ET RECONNAISSEZ','ÉCRIVEZ EN ESPAGNOL'][q.kind]:['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?(reverse?'Écoutez et choisissez la bonne traduction.':'Escucha y elige la traducción correcta.'):q.kind===2?(reverse?q.fr:q.es):(reverse?q.fr:q.fr);
-  if(q.kind!==2){const correct=reverse?q.es:q.es;const opts=shuffled([correct,...shuffled(exam.filter(x=>x.es!==correct).map(x=>x.es)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
+  const reverse=courseDirection==='es-fr';$('examKind').textContent=reverse?['TRADUISEZ EN ESPAGNOL','ÉCOUTEZ ET RECONNAISSEZ','ÉCRIVEZ EN ESPAGNOL'][q.kind]:['TRADUCE AL FRANCÉS','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?(reverse?'Écoutez la phrase française et choisissez sa traduction espagnole.':'Escucha la frase en español y elige su traducción francesa.'):q.kind===2?(reverse?q.fr:q.es):(reverse?q.fr:q.es);
+  if(q.kind!==2){const correct=reverse?q.es:q.fr;const opts=shuffled([correct,...shuffled(exam.filter(x=>(reverse?x.es:x.fr)!==correct).map(x=>reverse?x.es:x.fr)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
  }
  $('examHear').addEventListener('click',()=>{if(exam[examAt]&&typeof speak==='function')speak(courseDirection==='es-fr'?exam[examAt].es:exam[examAt].fr)});
  $('examCheck').addEventListener('click',()=>{
   if(examLocked||!exam.length)return;const q=exam[examAt],ans=q.kind===2?$('examInput').value:$('examOptions').dataset.answer;
   if(!ans){$('examFeedback').textContent='Primero selecciona o escribe una respuesta.';return}
-  const reverse=courseDirection==='es-fr',expected=reverse?q.es:q.kind===2?q.fr:q.es;const ok=clean(ans)===clean(expected);examLocked=true;
+  const reverse=courseDirection==='es-fr',expected=reverse?q.es:q.fr;const ok=clean(ans)===clean(expected);examLocked=true;
   $('examFeedback').textContent=reverse?(ok?'Correct !':'Bonne réponse : '+q.es+' — '+q.fr):(ok?'¡Correcto! '+q.fr+' — '+q.es:'Respuesta correcta: '+q.fr+' — '+q.es);$('examFeedback').className='exercise-feedback '+(ok?'good':'bad');
   if(ok)examPoints++;else addReview(q);
   $('examScore').textContent='Aciertos: '+examPoints;$('examCheck').disabled=true;$('examNext').disabled=false;
@@ -1396,16 +1388,16 @@ function beginQuiz(mode){
 }
 function renderQuestion(){
  const q=quiz[qi],reverse=courseDirection==='es-fr';locked=false;$('curriculumQuizProgress').textContent=(reverse?'Question ':'Pregunta ')+(qi+1)+(reverse?' sur ':' de ')+quiz.length;$('curriculumQuizScore').textContent=(reverse?'Bonnes réponses : ':'Aciertos: ')+score;
- $('curriculumQuizPrompt').textContent=reverse?'Que signifie «'+q.fr+'» en espagnol ?':'¿Qué significa «'+q.fr+'»?';
+ $('curriculumQuizPrompt').textContent=reverse?'Que signifie «'+q.fr+'» en espagnol ?':'¿Cómo se dice «'+q.es+'» en francés?';
  $('curriculumQuizOptions').innerHTML='';$('curriculumQuizFeedback').textContent='';$('curriculumQuizOptions').dataset.answer='';
- const correct=q.es;const others=quiz.filter(x=>x.es!==correct).map(x=>x.es);const opts=[correct];
+ const correct=reverse?q.es:q.fr;const others=quiz.filter(x=>(reverse?x.es:x.fr)!==correct).map(x=>reverse?x.es:x.fr);const opts=[correct];
  while(opts.length<Math.min(4,quiz.length)){const v=others[Math.floor(Math.random()*others.length)];if(v&&!opts.includes(v))opts.push(v);if(opts.length>=4)break}
  opts.sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(locked)return;$('curriculumQuizOptions').dataset.answer=v;$('curriculumQuizOptions').querySelectorAll('button').forEach(x=>x.classList.toggle('chosen',x===b))});$('curriculumQuizOptions').append(b)});
  $('curriculumQuizCheck').disabled=false;$('curriculumQuizNext').disabled=true;$('curriculumQuizNext').textContent=qi===quiz.length-1?'Ver resultado':'Siguiente';
 }
 function check(){
  if(locked)return;const answer=$('curriculumQuizOptions').dataset.answer;if(!answer){$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?'Sélectionnez une réponse.':'Selecciona una respuesta.';return}
- locked=true;const q=quiz[qi],correct=q.es,ok=answer===correct;if(ok)score++;$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?(ok?'Correct !':'Bonne réponse : '+q.es):(ok?'¡Correcto!':'Respuesta correcta: '+q.es);$('curriculumQuizFeedback').className='exercise-feedback '+(ok?'good':'bad');$('curriculumQuizScore').textContent='Aciertos: '+score;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').disabled=false;
+ locked=true;const q=quiz[qi],correct=courseDirection==='es-fr'?q.es:q.fr,ok=answer===correct;if(ok)score++;$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?(ok?'Correct !':'Bonne réponse : '+q.es):(ok?'¡Correcto!':'Respuesta correcta: '+q.fr);$('curriculumQuizFeedback').className='exercise-feedback '+(ok?'good':'bad');$('curriculumQuizScore').textContent='Aciertos: '+score;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').disabled=false;
 }
 function finish(){
  const pct=Math.round(score/quiz.length*100),s=state();s[currentLevel]=s[currentLevel]||{modules:{},certified:false};
