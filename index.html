@@ -416,6 +416,7 @@ const letters = [
 ];
 const $=id=>document.getElementById(id);
 let voices=[], queueToken=0;
+let courseDirection='fr-es';
 function loadVoices(){
  if(!('speechSynthesis' in window)){$('status').textContent='Este navegador no admite lectura de voz. Prueba con Chrome o Edge actualizado.';return}
  voices=speechSynthesis.getVoices();
@@ -627,7 +628,6 @@ function pauseSequenceFromCard(card){
  setPauseButton(true);
  $('status').textContent='Clase en pausa en «'+(card.querySelector('.french-word')?.textContent||'esta tarjeta')+'». Pulsa ▶ en la tarjeta para continuar desde aquí.';
 }
-let courseDirection='fr-es';
 function translateA1StaticContent(){
  const map={
  'Módulo 2: Saludos y despedidas':'Module 2 : Salutations et formules d’adieu',
