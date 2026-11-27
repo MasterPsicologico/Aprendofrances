@@ -474,22 +474,19 @@ function speak(text,cardElement,individualRate){
  utter.onerror=()=>{if(token===queueToken&&audioMode==='single'){$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.';audioMode='idle';clearAllAudioHighlights();setPauseButton(false)}};
  window.setTimeout(()=>{if(token===queueToken&&audioMode==='single')speechSynthesis.speak(utter)},80);
 }
-function selectLetter(item){
- $('selectedLetter').textContent=item[0];
- $('selectedName').textContent=item[0]==='Ñ'?'Ñ — explicación en francés':item[0]+' — '+item[1];
- $('selectedSound').textContent='Aproximación: «'+item[2]+'»';
- $('selectedInfo').textContent=item[3];
- $('playSelected').onclick=()=>speak(item[1]);
+function alphabetItems(){
+ if(courseDirection!=='es-fr')return letters;
+ return [
+ ['A','a','a','La A española suele ser abierta y estable.'],['B','be','be','El nombre es be; B y V suelen representar el mismo fonema /b/.'],['C','ce','θe / se','Ante E, I puede sonar /θ/ en parte de España o /s/ en América; ante A, O, U suena /k/.'],['D','de','de','Entre vocales puede realizarse con una articulación suave [ð].'],['E','e','e','Vocal clara y estable; no se reduce como la vocal francesa schwa.'],['F','efe','efe','Nombre de la letra: efe.'],['G','ge','xe / he','Ante E, I suele sonar como la J; ante A, O, U como /g/.'],['H','hache','ache','La H no se pronuncia en palabras españolas habituales.'],['I','i','i','Vocal clara y estable.'],['J','jota','jota','Fricativa velar /x/, más atrás que la J francesa.'],['K','ka','ka','Se usa sobre todo en préstamos y nombres propios.'],['L','ele','ele','Lateral alveolar; evita la L velarizada del francés.'],['M','eme','eme','Nombre de la letra: eme.'],['N','ene','ene','Nombre de la letra: ene.'],['Ñ','eñe','eñe','Consonante nasal palatal /ɲ/, como en niño.'],['O','o','o','Vocal clara y estable.'],['P','pe','pe','Oclusiva /p/; suele ser menos aspirada que en francés.'],['Q','cu','ku','Aparece normalmente en que y qui; la U no se pronuncia en esos grupos.'],['R','erre','ere','R suave /ɾ/ entre vocales, como en pero.'],['S','ese','ese','S generalmente sorda en las variedades latinoamericanas de referencia.'],['T','te','te','Oclusiva dental /t/, con la lengua más adelantada que en francés.'],['U','u','u','Vocal clara; en que y qui la U suele ser muda.'],['V','uve','uve','En la mayoría del español, B y V representan /b/; no se pronuncia como la V francesa.'],['W','uve doble','uve doble','Aparece principalmente en préstamos y nombres extranjeros.'],['X','equis','ekis','En general /ks/, con variaciones en algunos nombres.'],['Y','ye','ye','Puede ser consonante /ʝ/ o vocal /i/ según la palabra.'],['Z','zeta','seta','En América Latina se pronuncia /s/, igual que S (seseo).']
+ ];
 }
+function selectLetter(item){$('selectedLetter').textContent=item[0];$('selectedName').textContent=item[0]+' — '+item[1];$('selectedSound').textContent=(courseDirection==='es-fr'?'Prononciation approximative : ':'Aproximación: ')+'«'+item[2]+'»';$('selectedInfo').textContent=item[3];$('playSelected').onclick=()=>speak(item[1]);}
 function render(){
- const grid=$('alphabet');grid.innerHTML='';
- letters.forEach(item=>{
-  const b=document.createElement('button');b.type='button';b.className='tile'+(item[0]==='Ñ'?' special':'');
-  b.setAttribute('aria-label','Letra '+item[0]+'. Nombre francés: '+item[1]+'. Pulsar para escuchar.');
-  b.innerHTML='<div class="letter">'+item[0]+'</div><div class="french">'+(item[0]==='Ñ'?'Ñ (excepción)':item[1])+'</div><div class="sound">'+item[2]+'</div><div class="tap">🔊 Toca para escuchar</div>';
-  b.addEventListener('click',()=>{selectLetter(item);speak(item[1])});grid.appendChild(b);
- });
- selectLetter(letters[0]);
+ const grid=$('alphabet');grid.innerHTML='';const data=alphabetItems();
+ data.forEach(item=>{const b=document.createElement('button');b.type='button';b.className='tile'+(item[0]==='Ñ'?' special':'');
+ b.setAttribute('aria-label',(courseDirection==='es-fr'?'Lettre ':'Letra ')+item[0]+'. '+item[1]+'.');
+ b.innerHTML='<div class="letter">'+item[0]+'</div><div class="french">'+item[1]+'</div><div class="sound">'+item[2]+'</div><div class="tap">🔊 '+(courseDirection==='es-fr'?'Écouter':'Escuchar')+'</div>';
+ b.addEventListener('click',()=>{selectLetter(item);speak(item[1])});grid.appendChild(b)});selectLetter(data[0]);
 }
 function formatPlaybackRate(value){return Number(value).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'×'}
 function syncGlobalRate(value,source){
@@ -526,11 +523,11 @@ $('playAll').addEventListener('click',async()=>{
  if(!('speechSynthesis'in window))return;
  speechSynthesis.cancel();const token=++queueToken;audioMode='all';setPauseButton(false);const v=getVoice();const rate=Number($('rate').value);
  $('status').textContent='Reproduciendo el alfabeto francés…';
- for(const item of letters.filter(x=>x[0]!=='Ñ')){
+ for(const item of alphabetItems()){
   if(token!==queueToken)return;
   selectLetter(item);
   await new Promise(resolve=>{
-   const u=new SpeechSynthesisUtterance(item[1]);if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';u.rate=rate;
+   const u=new SpeechSynthesisUtterance(item[1]);const active=courseDirection==='es-fr'?(speechSynthesis.getVoices().find(x=>/^es(-|$)/i.test(x.lang))||null):v;if(active){u.voice=active;u.lang=active.lang}else u.lang=courseDirection==='es-fr'?'es-CO':'fr-FR';u.rate=rate;
    u.onstart=()=>{if(token===queueToken)highlightLetter(item[0],true)};
    u.onend=()=>{if(token===queueToken)clearLetterHighlight();resolve()};
    u.onerror=()=>{if(token===queueToken)clearLetterHighlight();resolve()};
@@ -962,7 +959,7 @@ let exerciseList=[],exerciseIndex=0,exerciseScore=0,selectedAnswer=null,exercise
 const norm=s=>String(s).toLocaleLowerCase('fr').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’']/g,"'").replace(/[.!?¿¡]/g,'').trim();
 function getPracticeItems(){
  const key=$('modulePicker').value;
- if(key==='alphabet')return letters.filter(x=>x[0]!=='Ñ').map(x=>({fr:x[0],es:'Nombre de la letra: '+x[1],pron:x[2],note:x[3]}));
+ if(key==='alphabet')return alphabetItems().map(x=>courseDirection==='es-fr'?({fr:'Lettre '+x[0]+' : '+x[1],es:x[0],pron:x[2],note:x[3]}):({fr:x[0],es:'Nombre de la letra: '+x[1],pron:x[2],note:x[3]}));
  return practiceSets[key]||greetings;
 }
 function startPractice(){
@@ -1084,8 +1081,8 @@ startPractice();
  function renderExam(){
   const q=exam[examAt];if(!q)return;
   examLocked=false;$('examProgress').textContent=(courseDirection==='es-fr'?'Question ':'Pregunta ')+(examAt+1)+(courseDirection==='es-fr'?' sur ':' de ')+exam.length;$('examScore').textContent=(courseDirection==='es-fr'?'Bonnes réponses : ':'Aciertos: ')+examPoints;$('examBar').style.width=(examAt/exam.length*100)+'%';$('examFeedback').textContent='';$('examOptions').innerHTML='';$('examInputWrap').hidden=q.kind!==2;$('examInput').value='';$('examCheck').disabled=false;$('examNext').disabled=true;
-  const reverse=courseDirection==='es-fr';$('examKind').textContent=reverse?['TRADUIS EN ESPAGNOL','ÉCOUTE ET RECONNAIS','ÉCRIS EN ESPAGNOL'][q.kind]:['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?(reverse?'Écoutez et choisissez la bonne traduction.':'Escucha y elige la traducción correcta.'):q.kind===2?(reverse?q.fr:q.es):(reverse?q.es:q.fr);
-  if(q.kind!==2){const correct=reverse?q.fr:q.es;const opts=shuffled([correct,...shuffled(exam.filter(x=>(reverse?x.fr:x.es)!==correct).map(x=>reverse?x.fr:x.es)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
+  const reverse=courseDirection==='es-fr';$('examKind').textContent=reverse?['TRADUISEZ EN ESPAGNOL','ÉCOUTEZ ET RECONNAISSEZ','ÉCRIVEZ EN ESPAGNOL'][q.kind]:['TRADUCE AL ESPAÑOL','ESCUCHA Y RECONOCE','ESCRIBE EN FRANCÉS'][q.kind];$('examPrompt').textContent=q.kind===1?(reverse?'Écoutez et choisissez la bonne traduction.':'Escucha y elige la traducción correcta.'):q.kind===2?(reverse?q.fr:q.es):(reverse?q.fr:q.fr);
+  if(q.kind!==2){const correct=reverse?q.es:q.es;const opts=shuffled([correct,...shuffled(exam.filter(x=>x.es!==correct).map(x=>x.es)).slice(0,3)]);opts.forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(examLocked)return;$('examOptions').querySelectorAll('button').forEach(x=>x.classList.remove('chosen'));b.classList.add('chosen');$('examOptions').dataset.answer=v});$('examOptions').appendChild(b)})}
  }
  $('examHear').addEventListener('click',()=>{if(exam[examAt]&&typeof speak==='function')speak(courseDirection==='es-fr'?exam[examAt].es:exam[examAt].fr)});
  $('examCheck').addEventListener('click',()=>{
@@ -1399,16 +1396,16 @@ function beginQuiz(mode){
 }
 function renderQuestion(){
  const q=quiz[qi],reverse=courseDirection==='es-fr';locked=false;$('curriculumQuizProgress').textContent=(reverse?'Question ':'Pregunta ')+(qi+1)+(reverse?' sur ':' de ')+quiz.length;$('curriculumQuizScore').textContent=(reverse?'Bonnes réponses : ':'Aciertos: ')+score;
- $('curriculumQuizPrompt').textContent=reverse?'Que signifie «'+q.es+'» en espagnol ?':'¿Qué significa «'+q.fr+'»?';
+ $('curriculumQuizPrompt').textContent=reverse?'Que signifie «'+q.fr+'» en espagnol ?':'¿Qué significa «'+q.fr+'»?';
  $('curriculumQuizOptions').innerHTML='';$('curriculumQuizFeedback').textContent='';$('curriculumQuizOptions').dataset.answer='';
- const correct=reverse?q.fr:q.es;const others=quiz.filter(x=>(reverse?x.fr:x.es)!==correct).map(x=>reverse?x.fr:x.es);const opts=[correct];
+ const correct=q.es;const others=quiz.filter(x=>x.es!==correct).map(x=>x.es);const opts=[correct];
  while(opts.length<Math.min(4,quiz.length)){const v=others[Math.floor(Math.random()*others.length)];if(v&&!opts.includes(v))opts.push(v);if(opts.length>=4)break}
  opts.sort(()=>Math.random()-.5).forEach(v=>{const b=document.createElement('button');b.type='button';b.textContent=v;b.addEventListener('click',()=>{if(locked)return;$('curriculumQuizOptions').dataset.answer=v;$('curriculumQuizOptions').querySelectorAll('button').forEach(x=>x.classList.toggle('chosen',x===b))});$('curriculumQuizOptions').append(b)});
  $('curriculumQuizCheck').disabled=false;$('curriculumQuizNext').disabled=true;$('curriculumQuizNext').textContent=qi===quiz.length-1?'Ver resultado':'Siguiente';
 }
 function check(){
  if(locked)return;const answer=$('curriculumQuizOptions').dataset.answer;if(!answer){$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?'Sélectionnez une réponse.':'Selecciona una respuesta.';return}
- locked=true;const q=quiz[qi],correct=courseDirection==='es-fr'?q.fr:q.es,ok=answer===correct;if(ok)score++;$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?(ok?'Correct !':'Bonne réponse : '+q.fr):(ok?'¡Correcto!':'Respuesta correcta: '+q.es);$('curriculumQuizFeedback').className='exercise-feedback '+(ok?'good':'bad');$('curriculumQuizScore').textContent='Aciertos: '+score;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').disabled=false;
+ locked=true;const q=quiz[qi],correct=q.es,ok=answer===correct;if(ok)score++;$('curriculumQuizFeedback').textContent=courseDirection==='es-fr'?(ok?'Correct !':'Bonne réponse : '+q.es):(ok?'¡Correcto!':'Respuesta correcta: '+q.es);$('curriculumQuizFeedback').className='exercise-feedback '+(ok?'good':'bad');$('curriculumQuizScore').textContent='Aciertos: '+score;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').disabled=false;
 }
 function finish(){
  const pct=Math.round(score/quiz.length*100),s=state();s[currentLevel]=s[currentLevel]||{modules:{},certified:false};
