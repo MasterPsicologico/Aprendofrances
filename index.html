@@ -631,6 +631,113 @@ function pauseSequenceFromCard(card){
  $('status').textContent='Clase en pausa en «'+(card.querySelector('.french-word')?.textContent||'esta tarjeta')+'». Pulsa ▶ en la tarjeta para continuar desde aquí.';
 }
 let courseDirection='fr-es';
+function translateA1StaticContent(){
+ const map={
+ 'Módulo 2: Saludos y despedidas':'Module 2 : Salutations et formules d’adieu',
+ 'Aprende a saludar, despedirte y utilizar expresiones de cortesía en situaciones cotidianas. Pulsa cada tarjeta para escuchar la pronunciación en francés.':'Apprenez à saluer, à prendre congé et à utiliser des formules de politesse dans les situations quotidiennes. Sélectionnez chaque carte pour écouter la prononciation en français.',
+ 'Clase 1 — Saludos básicos':'Leçon 1 — Les salutations de base',
+ 'Comienza con expresiones sencillas que puedes utilizar al conocer a alguien o al iniciar una conversación.':'Commencez par des expressions simples à utiliser lorsque vous rencontrez quelqu’un ou commencez une conversation.',
+ 'Lee la traducción y escucha varias veces. Puedes reducir la velocidad con el control superior.':'Lisez la traduction et écoutez plusieurs fois. Vous pouvez ralentir la lecture à l’aide du réglage situé en haut.',
+ 'Consejo:':'Conseil :',
+ 'en francés, «Bonjour» se utiliza durante el día para saludar. «Bonsoir» se utiliza al llegar la tarde o por la noche. «Bonne nuit» suele decirse al despedirse para ir a dormir.':'En français, « Bonjour » s’emploie pendant la journée pour saluer. « Bonsoir » s’utilise en fin de journée ou le soir. « Bonne nuit » se dit généralement au moment de se coucher.',
+ 'Módulo 3: Presentarse':'Module 3 : Se présenter',
+ 'Aprende a decir tu nombre, preguntar cómo se llama otra persona, indicar de dónde eres y hablar de tu idioma.':'Apprenez à dire votre nom, à demander celui d’une autre personne, à indiquer votre origine et à parler de votre langue.',
+ 'Clase 1 — Decir quién eres':'Leçon 1 — Se présenter',
+ 'Escucha cada frase y repítela en voz alta. Primero aprende la frase completa y luego intenta decirla sin mirar.':'Écoutez chaque phrase et répétez-la à voix haute. Mémorisez d’abord la phrase entière, puis essayez de la dire sans regarder.',
+ 'Mini diálogo:':'Mini-dialogue :',
+ 'Significa: Hola, ¿cómo te llamas? — Me llamo Óscar. ¿Y tú? — Me llamo Marie. ¡Encantada!':'Cela signifie : Bonjour, comment tu t’appelles ? — Je m’appelle Óscar. Et toi ? — Je m’appelle Marie. Enchantée !',
+ 'Módulo 4: Pronombres personales':'Module 4 : Les pronoms personnels',
+ 'Conoce las palabras que usamos para decir yo, tú, él, ella, nosotros y ellos. Son la base para construir oraciones.':'Découvrez les mots utilisés pour dire je, tu, il, elle, nous et ils. Ils constituent la base de la construction des phrases.',
+ 'Clase 1 — Los pronombres sujeto':'Leçon 1 — Les pronoms sujets',
+ 'Escucha los pronombres y observa cuándo se utiliza cada uno.':'Écoutez les pronoms et observez dans quelles situations chacun est employé.',
+ 'Importante:':'Important :',
+ '«tu» es informal (una persona); «vous» se utiliza para hablar formalmente con una persona o para dirigirse a varias personas. «On» se usa mucho en el francés cotidiano con el sentido de «nosotros».':'« Tu » s’emploie dans un contexte familier avec une seule personne ; « vous » sert à s’adresser poliment à une personne ou à plusieurs personnes. « On » est très fréquent en français courant avec le sens de « nous ».',
+ 'Módulo 5: Verbos esenciales — être y avoir':'Module 5 : Les verbes essentiels — être et avoir',
+ 'Aprende dos verbos fundamentales: être (ser o estar) y avoir (tener). Escucha cada forma y su significado.':'Apprenez deux verbes fondamentaux : être et avoir. Écoutez chaque forme et sa signification.',
+ 'Clase 1 — Être: ser o estar':'Leçon 1 — Être : être',
+ 'Practica las formas del presente. Después encontrarás el verbo avoir.':'Entraînez-vous aux formes du présent. Vous étudierez ensuite le verbe avoir.',
+ 'Verbo être — ser o estar':'Le verbe être',
+ 'Verbo avoir — tener':'Le verbe avoir',
+ 'Ejemplos:':'Exemples :',
+ 'Módulo 6: Los números':'Module 6 : Les nombres',
+ 'Aprende a contar desde cero, reconocer los números y decir cantidades sencillas.':'Apprenez à compter à partir de zéro, à reconnaître les nombres et à exprimer des quantités simples.',
+ 'Clase 1 — Del 0 al 20 y las decenas':'Leçon 1 — De 0 à 20 et les dizaines',
+ 'Escucha cada número en francés y repítelo. Después practica las decenas hasta cien.':'Écoutez chaque nombre en français et répétez-le. Entraînez-vous ensuite avec les dizaines jusqu’à cent.',
+ 'Observa:':'À noter :',
+ 'En francés de Francia, 70 se forma como «soixante-dix» (60 + 10), 80 como «quatre-vingts» (4 × 20) y 90 como «quatre-vingt-dix» (4 × 20 + 10).':'En français de France, 70 se forme avec « soixante-dix » (60 + 10), 80 avec « quatre-vingts » (4 × 20) et 90 avec « quatre-vingt-dix » (4 × 20 + 10).',
+ 'Módulo 7: La edad y los años':'Module 7 : L’âge et les années',
+ 'Aprende a preguntar y decir cuántos años tienes. En francés se utiliza el verbo avoir (tener), no être (ser/estar).':'Apprenez à demander et à dire votre âge. En français, on utilise le verbe avoir, et non être.',
+ 'Clase 1 — ¿Cuántos años tienes?':'Leçon 1 — Quel âge as-tu ?',
+ 'Practica la pregunta formal e informal y distintas respuestas.':'Entraînez-vous à poser la question dans un registre familier ou formel et à donner différentes réponses.',
+ 'Modelo para practicar:':'Modèle à pratiquer :',
+ 'Recuerda: «J’ai … ans», literalmente «tengo … años».':'À retenir : « J’ai … ans » signifie littéralement « J’ai … années ».',
+ 'Módulo 8: Países y nacionalidades':'Module 8 : Pays et nationalités',
+ 'Aprende a nombrar países, decir de dónde eres y expresar tu nacionalidad.':'Apprenez à nommer les pays, à dire d’où vous venez et à exprimer votre nationalité.',
+ 'Clase 1 — ¿De dónde eres?':'Leçon 1 — D’où viens-tu ?',
+ 'Observa que algunas nacionalidades cambian según el género de la persona.':'Remarquez que certaines nationalités varient selon le genre de la personne.',
+ 'Frases útiles:':'Expressions utiles :',
+ 'Módulo 9: Preguntas básicas':'Module 9 : Les questions de base',
+ 'Aprende preguntas esenciales para comprender y mantener una conversación sencilla.':'Apprenez les questions essentielles pour comprendre et entretenir une conversation simple.',
+ 'Clase 1 — Preguntar y comprender':'Leçon 1 — Poser des questions et comprendre',
+ 'Escucha las preguntas completas y familiarízate con su entonación.':'Écoutez les questions dans leur intégralité et familiarisez-vous avec leur intonation.',
+ '«Est-ce que…» permite formar muchas preguntas. Por ejemplo: «Est-ce que tu parles français ?» — ¿Hablas francés?':'La structure « Est-ce que… » permet de former de nombreuses questions. Par exemple : « Est-ce que tu parles français ? »',
+ 'Módulo 10: Los artículos':'Module 10 : Les articles',
+ 'Aprende a decir «el», «la», «los», «las» y «un», «una», «unos», «unas». En francés, los artículos cambian según el género y el número.':'Apprenez les articles définis et indéfinis. En français, les articles varient selon le genre et le nombre.',
+ 'Clase 1 — Le, la, les, un, une y des':'Leçon 1 — Le, la, les, un, une et des',
+ 'Escucha cada ejemplo, identifica el artículo y observa cómo acompaña al sustantivo.':'Écoutez chaque exemple, identifiez l’article et observez comment il accompagne le nom.',
+ 'Regla útil:':'Règle utile :',
+ '«le» y «la» se convierten en «l’» delante de una vocal o h muda: l’école (la escuela), l’hôtel (el hotel). «Les» sirve para el plural masculino y femenino.':'« Le » et « la » deviennent « l’ » devant une voyelle ou un h muet : l’école, l’hôtel. « Les » s’emploie au pluriel masculin et féminin.',
+ 'Módulo 11: Masculino y femenino':'Module 11 : Masculin et féminin',
+ 'Los sustantivos franceses tienen género gramatical. Aprende cada palabra junto con su artículo para recordarlo mejor.':'Les noms français ont un genre grammatical. Apprenez chaque mot avec son article pour mieux le mémoriser.',
+ 'Clase 1 — Reconocer el género':'Leçon 1 — Reconnaître le genre',
+ 'Compara palabras masculinas y femeninas. No siempre se puede adivinar el género por la terminación.':'Comparez les noms masculins et féminins. Le genre ne peut pas toujours être deviné à partir de la terminaison.',
+ 'Consejo de estudio:':'Conseil d’étude :',
+ 'memoriza «un livre» y «une maison», no solamente «livre» y «maison». El artículo te ayuda a recordar el género.':'Mémorisez « un livre » et « une maison », et pas seulement « livre » et « maison ». L’article vous aide à retenir le genre.',
+ 'Módulo 12: Adjetivos y descripciones':'Module 12 : Adjectifs et descriptions',
+ 'Aprende a describir personas y cosas. Muchos adjetivos cambian en femenino y plural.':'Apprenez à décrire des personnes et des choses. De nombreux adjectifs varient au féminin et au pluriel.',
+ 'Clase 1 — Describir cómo es algo':'Leçon 1 — Décrire une personne ou une chose',
+ 'Escucha las formas y fíjate en los cambios de género y número.':'Écoutez les différentes formes et observez les changements de genre et de nombre.',
+ 'Módulo 13: Construir oraciones':'Module 13 : Construire des phrases',
+ 'Combina sujeto + verbo + complemento para crear tus primeras frases. Aprende modelos que podrás adaptar a tu vida cotidiana.':'Combinez sujet + verbe + complément pour créer vos premières phrases. Apprenez des modèles que vous pourrez adapter à votre quotidien.',
+ 'Clase 1 — Frases sencillas':'Leçon 1 — Phrases simples',
+ 'Observa el orden de las palabras y escucha cómo suena la oración completa.':'Observez l’ordre des mots et écoutez la phrase dans son intégralité.',
+ 'Estructura básica:':'Structure de base :',
+ 'Sujeto + verbo + complemento.':'Sujet + verbe + complément.',
+ 'Módulo especial A1 — Domina los sonidos del francés':'Module spécial A1 — Maîtriser les sons du français',
+ 'Entrena la R francesa, las vocales que no existen en español, los sonidos nasales, las consonantes y los enlaces. Escucha el modelo, comprende cómo colocar la boca y practica con el micrófono.':'Entraînez-vous au R français, aux voyelles qui n’existent pas en espagnol, aux voyelles nasales, aux consonnes et aux liaisons. Écoutez le modèle, apprenez à placer la bouche et entraînez-vous avec le microphone.',
+ 'Tu entrenamiento de pronunciación':'Votre entraînement de prononciation',
+ 'SONIDO ':'SON ',
+ 'sonidos practicados':'sons pratiqués',
+ 'Racha: ':'Série : ',
+ 'Escuchar modelo':'Écouter le modèle',
+ 'Intentar pronunciar':'Essayer de prononcer',
+ 'Siguiente sonido →':'Son suivant →',
+ 'Pronunciación aproximada: ':'Prononciation approximative : ',
+ 'Velocidad individual':'Vitesse individuelle',
+ '🔊 Escuchar':'🔊 Écouter',
+ '▶ Escuchar esta clase':'▶ Écouter cette leçon',
+ '▶ Escuchar la clase':'▶ Écouter la leçon',
+ '▶ Escuchar módulo':'▶ Écouter le module',
+ '▶ Escuchar saludos':'▶ Écouter les salutations',
+ '▶ Escuchar presentaciones':'▶ Écouter les présentations',
+ '▶ Escuchar pronombres':'▶ Écouter les pronoms',
+ '▶ Escuchar verbos':'▶ Écouter les verbes',
+ '▶ Escuchar números':'▶ Écouter les nombres',
+ '▶ Escuchar edades':'▶ Écouter les âges',
+ '▶ Escuchar países':'▶ Écouter les pays',
+ '▶ Escuchar preguntas':'▶ Écouter les questions',
+ '▶ Escuchar artículos':'▶ Écouter les articles',
+ '▶ Escuchar género':'▶ Écouter le genre',
+ '▶ Escuchar adjetivos':'▶ Écouter les adjectifs',
+ '▶ Escuchar oraciones':'▶ Écouter les phrases'
+ };
+ const root=$('modulePicker')?.closest('main')||document.body;
+ root.querySelectorAll('.module-view:not([hidden])').forEach(view=>{
+  const walker=document.createTreeWalker(view,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+  nodes.forEach(node=>{const original=node.nodeValue.trim();if(!original)return;let translated=map[original];if(!translated){for(const [es,fr] of Object.entries(map)){if(original===es){translated=fr;break}}}if(translated)node.nodeValue=node.nodeValue.replace(original,translated)});
+ });
+ const toggle=$('courseDirectionToggle');if(toggle){const fr=courseDirection==='es-fr';toggle.textContent=fr?'🇫🇷 Français':'🇪🇸 Español';$('courseDirectionLabel').textContent=fr?'Vous apprenez l’espagnol · Interface en français':'Aprendes francés · Interfaz en español'}
+}
 function spokenText(item){return courseDirection==='fr-es'?item.fr:item.es}
 function refreshA1Cards(){
  renderGreetings();renderCards(introductions,'introductionsGrid');renderCards(pronouns,'pronounsGrid');renderCards(etre,'etreGrid');renderCards(avoir,'avoirGrid');renderCards(numbers,'numbersGrid');renderCards(agePhrases,'ageGrid');renderCards(countries,'countriesGrid');renderCards(questions,'questionsGrid');renderCards(articles,'articlesGrid');renderCards(gender,'genderGrid');renderCards(adjectives,'adjectivesGrid');renderCards(sentences,'sentencesGrid');
@@ -795,6 +902,7 @@ function applySelectedModule(){
  $('playAll').textContent=playLabels[key]||'▶ Escuchar módulo';
  queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();
  $('status').textContent=labels[key]||'Módulo seleccionado.';
+ if(courseDirection==='es-fr')translateA1StaticContent();
 }
 $('courseDirectionToggle').addEventListener('click',()=>{
  queueToken++;if('speechSynthesis'in window)speechSynthesis.cancel();audioMode='idle';setPauseButton(false);clearAllAudioHighlights();
@@ -805,6 +913,7 @@ $('courseDirectionToggle').addEventListener('click',()=>{
  $('voice').disabled=spanish;
  $('status').textContent=spanish?'Mode espagnol : les cartes affichent l’espagnol et leur équivalent français.':'Modo francés: las tarjetas muestran francés y su equivalente en español.';
  refreshA1Cards();
+ translateA1StaticContent();
 });
 $('modulePicker').addEventListener('change',applySelectedModule);
 $('playGreetings').addEventListener('click',()=>speakSequence(greetings.map(x=>spokenText(x)),'Reproduciendo el vocabulario de saludos…','¡Clase terminada! Puedes repetir cualquier expresión.'));
