@@ -1210,14 +1210,14 @@ function finish(){
   if(certified){s[currentLevel].certified=true;s[currentLevel].score=pct;s[currentLevel].date=new Date().toISOString()}
   $('curriculumQuizFeedback').textContent='Certificación '+currentLevel+': '+score+'/'+quiz.length+' · '+pct+'%. '+(certified?'¡Nivel certificado! Se ha guardado tu medalla dorada.':!allModulesPassed?'Todavía no puedes certificar: primero aprueba los '+levels[currentLevel].modules.length+' módulos con al menos 80% en cada uno.':'Examen no aprobado: necesitas 80%. Puedes repetirlo.')+' Módulos aprobados: '+approved+'/'+levels[currentLevel].modules.length+'.';
  }
- save(s);window.getAprendoMemoryItems=function(){const out=[];Object.entries(levels).forEach(([level,data])=>data.modules.forEach((m,mi)=>m[3].forEach((p,pi)=>out.push({id:level+'|'+mi+'|'+pi,level,module:m[0],fr:p[0],es:p[1]}))));return out;};
-certs();renderModules();$('curriculumQuizNext').disabled=true;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').textContent='Evaluación finalizada';
+ save(s);certs();renderModules();$('curriculumQuizNext').disabled=true;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').textContent='Evaluación finalizada';
 }
 $('curriculumLevel').addEventListener('change',()=>{currentLevel=$('curriculumLevel').value;currentModule=null;renderModules()});
 $('curriculumStartQuiz').addEventListener('click',()=>beginQuiz('module'));
 $('curriculumCertify').addEventListener('click',()=>beginQuiz('cert'));
 $('curriculumQuizCheck').addEventListener('click',check);
 $('curriculumQuizNext').addEventListener('click',()=>{if(!locked)return;if(qi<quiz.length-1){qi++;renderQuestion()}else finish()});
+window.getAprendoMemoryItems=function(){const out=[];Object.entries(levels).forEach(([level,data])=>data.modules.forEach((m,mi)=>m[3].forEach((p,pi)=>out.push({id:level+'|'+mi+'|'+pi,level,module:m[0],fr:p[0],es:p[1]}))));return out;};
 certs();renderModules();
 })();
 </script>
