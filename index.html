@@ -1106,14 +1106,14 @@ startPractice();
  $('dictationNew').addEventListener('click',newDictation);
  $('dictationCheck').addEventListener('click',()=>{if(!dictationItem)return;const expected=courseDirection==='es-fr'?dictationItem.es:dictationItem.fr;const ok=clean($('dictationInput').value)===clean(expected);$('dictationFeedback').textContent=courseDirection==='es-fr'?(ok?'Très bien ! Dictée correcte.':'Réponse modèle : '+expected):(ok?'¡Muy bien! Dictado correcto.':'La respuesta modelo es: '+expected);$('dictationFeedback').className='exercise-feedback '+(ok?'good':'bad');if(!ok)addReview(dictationItem)});
  const speakSamples=[
-  {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr'},
-  {fr:'Au revoir',es:'Adiós / Hasta luego',pron:'o rə-vuár'},
-  {fr:'Je m’appelle Oscar',es:'Me llamo Óscar',pron:'ʒə ma-pel os-kar'},
-  {fr:'Je parle français',es:'Hablo francés',pron:'ʒə parl fran-sé'},
-  {fr:'Je ne comprends pas',es:'No entiendo',pron:'ʒə nə kom-pran pa'},
-  {fr:'Pouvez-vous répéter, s’il vous plaît ?',es:'¿Puede repetir, por favor?',pron:'pu-vé vu ré-pé-té sil vu plé'}
+  {fr:'Bonjour',es:'Hola / Buenos días',pron:'bon-yúr',pronEs:'ó-la / bue-nos dí-as'},
+  {fr:'Au revoir',es:'Adiós / Hasta luego',pron:'o rə-vuár',pronEs:'a-diós / ás-ta lué-go'},
+  {fr:'Je m’appelle Oscar',es:'Me llamo Óscar',pron:'ʒə ma-pel os-kar',pronEs:'me yá-mo ós-kar'},
+  {fr:'Je parle français',es:'Hablo francés',pron:'ʒə parl fran-sé',pronEs:'á-blo fran-sés'},
+  {fr:'Je ne comprends pas',es:'No entiendo',pron:'ʒə nə kom-pran pa',pronEs:'no en-tién-do'},
+  {fr:'Pouvez-vous répéter, s’il vous plaît ?',es:'¿Puede repetir, por favor?',pron:'pu-vé vu ré-pé-té sil vu plé',pronEs:'pué-de re-pe-tír por fa-vór'}
  ];
- function renderSpeak(){const x=speakSamples[speakAt%speakSamples.length],reverse=courseDirection==='es-fr';$('speakTarget').textContent=reverse?x.es:x.fr;$('speakTranslation').textContent=reverse?x.fr:x.es;$('speakPronunciation').textContent=(reverse?'Prononciation approximative : ':'Pronunciación aproximada: ')+(reverse?x.es.toLowerCase():x.pron);$('speakResult').textContent=reverse?'Écoutez le modèle, puis répétez en espagnol.':'Escucha el modelo y después intenta decirlo.'}
+ function renderSpeak(){const x=speakSamples[speakAt%speakSamples.length],reverse=courseDirection==='es-fr';$('speakTarget').textContent=reverse?x.es:x.fr;$('speakTranslation').textContent=reverse?x.fr:x.es;$('speakPronunciation').textContent=(reverse?'Prononciation approximative : ':'Pronunciación aproximada: ')+(reverse?x.pronEs:x.pron);$('speakResult').textContent=reverse?'Écoutez le modèle, puis répétez en espagnol.':'Escucha el modelo y después intenta decirlo.'}
  $('speakModel').addEventListener('click',()=>{if(typeof speak==='function')speak($('speakTarget').textContent)});
  $('speakNext').addEventListener('click',()=>{speakAt++;renderSpeak()});
  $('speakMic').addEventListener('click',()=>{
@@ -1136,7 +1136,7 @@ startPractice();
  function paintReview(){
   const root=$('reviewList');root.innerHTML='';
   if(!review.length){root.textContent='¡Todavía no hay errores guardados! Completa ejercicios para crear tu lista de repaso.';return}
-  review.forEach((x,i)=>{const card=document.createElement('article');card.className='vocab-card';const fr=document.createElement('div');fr.className='french-word';fr.textContent=x.fr;const es=document.createElement('div');es.className='translation';es.textContent=x.es;const pr=document.createElement('div');pr.className='pronunciation';pr.textContent='Pronunciación aproximada: '+x.pron;const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='🔊 Escuchar';b.addEventListener('click',()=>speak(x.fr));card.append(fr,es,pr,b);root.appendChild(card)})
+  review.forEach((x,i)=>{const card=document.createElement('article');card.className='vocab-card';const primary=document.createElement('div');primary.className='french-word';primary.textContent=courseDirection==='es-fr'?x.es:x.fr;const secondary=document.createElement('div');secondary.className='translation';secondary.textContent=courseDirection==='es-fr'?x.fr:x.es;const pr=document.createElement('div');pr.className='pronunciation';pr.textContent=(courseDirection==='es-fr'?'Prononciation espagnole : ':'Pronunciación francesa: ')+(courseDirection==='es-fr'?x.pronEs:x.pron);const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=courseDirection==='es-fr'?'🔊 Écouter':'🔊 Escuchar';b.addEventListener('click',()=>speak(courseDirection==='es-fr'?x.es:x.fr));card.append(primary,secondary,pr,b);root.appendChild(card)})
  }
  $('reviewClear').addEventListener('click',()=>{review=[];persistReview();paintReview()});
  $('modulePicker').addEventListener('change',()=>{exam=[];orderItem=null;dictationItem=null;examAt=0;examPoints=0});
@@ -1654,11 +1654,12 @@ const french=[
 {title:'La R française',symbol:'ʁ',target:'rouge',ipa:'/ʁuʒ/',category:'CONSONNE POSTÉRIEURE',explain:'Le R français se forme à l’arrière de la bouche, près de la luette. La pointe de la langue ne vibre pas comme pour le R roulé espagnol.',guide:'Détendez la mâchoire. Relevez légèrement l’arrière de la langue et laissez passer l’air doucement. Ne forcez pas la gorge.',mistake:'Évitez de remplacer ce son par le R roulé espagnol.'},
 {title:'U française /y/',symbol:'y',target:'tu',ipa:'/ty/',category:'VOYELLE ANTÉRIEURE ARRONDIE',explain:'La langue se place comme pour prononcer « i », mais les lèvres s’arrondissent.',guide:'Prononcez un « i » prolongé puis arrondissez les lèvres sans déplacer la langue.',mistake:'Ne reculez pas la langue pour produire le U espagnol.'},
 {title:'OU /u/',symbol:'u',target:'tout',ipa:'/tu/',category:'VOYELLE',explain:'OU représente généralement /u/, proche du U espagnol.',guide:'Arrondissez les lèvres et placez la langue vers l’arrière.',mistake:'Ne confondez pas OU /u/ et U /y/.'},
-{title:'Voyelles nasales',symbol:'ɑ̃ ɔ̃ ɛ̃',target:'un bon pain',ipa:'/œ̃ bɔ̃ pɛ̃/',category:'VOYELLES NASALES',explain:'Les voyelles nasales comportent une résonance dans le nez. N’ajoutez pas une consonne N ou M finale.',guide:'Laissez résonner la voyelle par la bouche et le nez, sans fermer la syllabe.',mistake:'Évitez de prononcer une voyelle suivie d’un N audible.'},
+{title:'Voyelle nasale /ɑ̃/',symbol:'ɑ̃',target:'sans',ipa:'/sɑ̃/',category:'VOYELLE NASALE',explain:'Cette voyelle nasale est fréquente dans « sans ». Elle ne se termine pas par une consonne N prononcée.',guide:'Ouvrez confortablement la bouche et laissez une partie de l’air résonner par le nez, sans ajouter de N.',mistake:'Évitez de prononcer « san » avec un N final nettement audible.'},
+{title:'Voyelle nasale /ɔ̃/',symbol:'ɔ̃',target:'bon',ipa:'/bɔ̃/',category:'VOYELLE NASALE',explain:'C’est une voyelle nasale arrondie, fréquente dans « bon ».',guide:'Arrondissez les lèvres et maintenez la voyelle avec une résonance nasale, sans ajouter de N.',mistake:'Ne prononcez pas un O suivi d’un N comme deux sons séparés.'},
+{title:'Voyelle nasale /ɛ̃/',symbol:'ɛ̃',target:'pain',ipa:'/pɛ̃/',category:'VOYELLE NASALE',explain:'Voyelle nasale antérieure, fréquente dans « pain » et « matin ».',guide:'Placez la langue vers l’avant, ouvrez légèrement la bouche et laissez une résonance nasale se produire.',mistake:'N’ajoutez pas de N final audible.'},
 {title:'E fermé et ouvert',symbol:'e / ɛ',target:'été, père',ipa:'/ete/ · /pɛʁ/',category:'CONTRASTE VOCALIQUE',explain:'Le français distingue des qualités vocaliques proches que l’espagnol tend à rapprocher.',guide:'Pour /e/, la bouche est plus fermée. Pour /ɛ/, ouvrez un peu plus la mâchoire.',mistake:'Ne prononcez pas les deux voyelles de manière identique.'},
 {title:'CH et J',symbol:'ʃ / ʒ',target:'chat, jour',ipa:'/ʃa/ · /ʒuʁ/',category:'CONSONNES FRICATIVES',explain:'CH se prononce généralement /ʃ/ et J /ʒ/.',guide:'Pour /ʃ/, laissez passer l’air sans voix. Pour /ʒ/, faites vibrer les cordes vocales.',mistake:'Ne prononcez pas CH comme le « ch » espagnol de chico.'},
-{title:'Consonnes finales',symbol:'t d s x',target:'petit, grand, vous',ipa:'selon le mot',category:'CONSONNES FINALES',explain:'De nombreuses consonnes finales ne se prononcent pas, mais il existe des exceptions.',guide:'Apprenez la prononciation de chaque mot et écoutez les liaisons.',mistake:'Ne prononcez pas automatiquement toutes les consonnes écrites.'},
-{title:'Liaison',symbol:'‿',target:'vous avez',ipa:'/vu.z‿a.ve/',category:'ENCHAÎNEMENT',explain:'Dans certains contextes, une consonne finale normalement muette se lie à la voyelle du mot suivant.',guide:'Dans « vous avez », le son /z/ relie les deux mots.',mistake:'Ne faites pas de liaison entre tous les mots.'}
+{title:'Consonnes finales et liaison',symbol:'t d s z',target:'vous avez',ipa:'/vu.z‿a.ve/',category:'CONSONNES FINALES ET LIAISON',explain:'De nombreuses consonnes finales ne se prononcent pas isolément. Dans certains contextes, une consonne finale se lie à la voyelle suivante : dans « vous avez », on entend /z/.',guide:'Apprenez la prononciation de chaque mot et écoutez la phrase entière. Ne faites la liaison que dans les contextes appropriés.',mistake:'Ne prononcez pas toutes les consonnes finales et ne faites pas de liaison entre tous les mots.'}
 ];
 const spanish=[
 {title:'R suave /ɾ/ y RR fuerte /r/',symbol:'ɾ / r',target:'pero perro',ipa:'/ˈpe.ɾo/ · /ˈpe.ro/',category:'VIBRANTES',explain:'La R entre vocales suele ser suave /ɾ/ en « pero ». La RR de « perro » es vibrante múltiple /r/. La R francesa uvular no sustituye estos dos sonidos.',guide:'Para la R suave, haz un contacto breve de la punta de la lengua detrás de los dientes superiores. Para RR, permite varias vibraciones rápidas. Practica sin tensar la mandíbula.',mistake:'No sustituyas ambas por la R francesa de garganta ni conviertas cada R en una vibración múltiple.'},
@@ -1676,7 +1677,7 @@ let index=0,streak=0,passed=new Set(),recognition=null,prev=courseDirection;
 const key=()=> 'aprendofrances_pronunciation_'+(courseDirection==='es-fr'?'es':'fr')+'_a1_v2';
 const list=()=>courseDirection==='es-fr'?spanish:french;
 const lang=()=>courseDirection==='es-fr'?'es-CO':'fr-FR';
-function load(){try{const d=JSON.parse(localStorage.getItem(key())||'{}');passed=new Set(Array.isArray(d.passed)?d.passed:[])}catch(e){passed=new Set()}}
+function load(){try{const legacy=courseDirection==='fr-es'?localStorage.getItem('aprendofrances_pronunciation_a1_v1'):null;const d=JSON.parse(localStorage.getItem(key())||legacy||'{}');passed=new Set(Array.isArray(d.passed)?d.passed:[])}catch(e){passed=new Set()}}
 function save(){try{localStorage.setItem(key(),JSON.stringify({passed:[...passed]}))}catch(e){}}
 function stop(){if(recognition){try{recognition.abort()}catch(e){}recognition=null}}
 function paint(){
