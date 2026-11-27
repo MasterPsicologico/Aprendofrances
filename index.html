@@ -1373,7 +1373,7 @@ function renderModules(){
   $('curriculumStartQuiz').disabled=true;$('curriculumCertify').disabled=true;$('curriculumQuiz').hidden=true;return;
  }
  const data=levels[currentLevel];
- data.modules.forEach((m,i)=>{const c=document.createElement('article');c.className='vocab-card';c.style.cursor='pointer';const t=document.createElement('strong');t.textContent=(i+1)+'. '+m[0];const d=document.createElement('div');d.className='context';d.textContent=m[1];const st=state(),done=!!st[currentLevel]?.modules?.[i];const v=document.createElement('div');v.className='progress-value';v.textContent=done?'⭐ Módulo aprobado':'Clase disponible';if(done)v.style.color='#946900';c.append(t,d,v);c.addEventListener('click',()=>openModule(i));root.append(c)});
+ data.modules.forEach((m,i)=>{const c=document.createElement('article');c.className='vocab-card';c.style.cursor='pointer';const t=document.createElement('strong');t.textContent=(i+1)+'. '+m[0];const d=document.createElement('div');d.className='context';d.textContent=courseDirection==='es-fr'?'Contenu disponible · accès libre':m[1];const st=state(),done=!!st[currentLevel]?.modules?.[i];const v=document.createElement('div');v.className='progress-value';v.textContent=done?'⭐ Módulo aprobado':'Clase disponible';if(done)v.style.color='#946900';c.append(t,d,v);c.addEventListener('click',()=>openModule(i));root.append(c)});
  $('curriculumLessonTitle').textContent='Elige cualquier módulo de '+currentLevel;
  $('curriculumLessonGoal').textContent=data.desc;
  $('curriculumLessonGrammar').textContent='';$('curriculumLessonItems').innerHTML='';
@@ -1382,10 +1382,10 @@ function renderModules(){
 function openModule(i){
  currentModule=i;const m=levels[currentLevel].modules[i];
  $('curriculumLessonTitle').textContent=currentLevel+' · '+(i+1)+'. '+m[0];
- $('curriculumLessonGoal').textContent=m[1];
- const g=document.createElement('p');g.className='note';g.textContent='Punto lingüístico: '+m[2];$('curriculumLessonGrammar').replaceChildren(g);
+ $('curriculumLessonGoal').textContent=courseDirection==='es-fr'?'Objectif : étudier les expressions espagnoles et leur emploi.':m[1];
+ const g=document.createElement('p');g.className='note';g.textContent=(courseDirection==='es-fr'?'Point linguistique : ':'Punto lingüístico: ')+m[2];$('curriculumLessonGrammar').replaceChildren(g);
  const root=$('curriculumLessonItems');root.innerHTML='';
- m[3].forEach(pair=>{const c=document.createElement('article');c.className='vocab-card';const fr=document.createElement('div');fr.className='french-word';fr.textContent=pair[0];const es=document.createElement('div');es.className='translation';es.textContent=pair[1];const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent='🔊 Escuchar';b.addEventListener('click',()=>{if(typeof speak==='function')speak(pair[0]);else if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(pair[0]);u.lang='fr-FR';speechSynthesis.speak(u)}});c.append(fr,es,b);root.append(c)});
+ m[3].forEach(pair=>{const c=document.createElement('article');c.className='vocab-card';const fr=document.createElement('div');fr.className='french-word';fr.textContent=courseDirection==='es-fr'?pair[1]:pair[0];const es=document.createElement('div');es.className='translation';es.textContent=courseDirection==='es-fr'?pair[0]:pair[1];const b=document.createElement('button');b.type='button';b.className='secondary';b.textContent=courseDirection==='es-fr'?'🔊 Écouter':'🔊 Escuchar';b.addEventListener('click',()=>{const phrase=courseDirection==='es-fr'?pair[1]:pair[0];if(typeof speak==='function')speak(phrase);else if('speechSynthesis'in window){const u=new SpeechSynthesisUtterance(phrase);u.lang=courseDirection==='es-fr'?'es-ES':'fr-FR';speechSynthesis.speak(u)}});c.append(fr,es,b);root.append(c)});
  $('curriculumStartQuiz').disabled=false;$('curriculumQuiz').hidden=true;
 }
 function beginQuiz(mode){
