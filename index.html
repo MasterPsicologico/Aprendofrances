@@ -1210,7 +1210,8 @@ function finish(){
   if(certified){s[currentLevel].certified=true;s[currentLevel].score=pct;s[currentLevel].date=new Date().toISOString()}
   $('curriculumQuizFeedback').textContent='Certificación '+currentLevel+': '+score+'/'+quiz.length+' · '+pct+'%. '+(certified?'¡Nivel certificado! Se ha guardado tu medalla dorada.':!allModulesPassed?'Todavía no puedes certificar: primero aprueba los '+levels[currentLevel].modules.length+' módulos con al menos 80% en cada uno.':'Examen no aprobado: necesitas 80%. Puedes repetirlo.')+' Módulos aprobados: '+approved+'/'+levels[currentLevel].modules.length+'.';
  }
- save(s);certs();renderModules();$('curriculumQuizNext').disabled=true;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').textContent='Evaluación finalizada';
+ save(s);window.getAprendoMemoryItems=function(){const out=[];Object.entries(levels).forEach(([level,data])=>data.modules.forEach((m,mi)=>m[3].forEach((p,pi)=>out.push({id:level+'|'+mi+'|'+pi,level,module:m[0],fr:p[0],es:p[1]}))));return out;};
+certs();renderModules();$('curriculumQuizNext').disabled=true;$('curriculumQuizCheck').disabled=true;$('curriculumQuizNext').textContent='Evaluación finalizada';
 }
 $('curriculumLevel').addEventListener('change',()=>{currentLevel=$('curriculumLevel').value;currentModule=null;renderModules()});
 $('curriculumStartQuiz').addEventListener('click',()=>beginQuiz('module'));
@@ -1221,6 +1222,144 @@ certs();renderModules();
 })();
 </script>
 
+
+
+<style>
+#memoryCenter .memory-card{max-width:620px;margin:12px auto;padding:26px;border:1px solid #dce5f2;border-radius:22px;background:linear-gradient(145deg,#fff,#f4f7ff);text-align:center;min-height:210px;display:flex;flex-direction:column;justify-content:center;gap:12px;box-shadow:0 12px 30px #203d7110}
+#memoryCenter .memory-front{font-size:clamp(24px,5vw,34px);font-weight:850;color:#2457c5;line-height:1.3;overflow-wrap:anywhere}
+#memoryCenter .memory-back{font-size:19px;font-weight:750;color:#17243b}
+#memoryCenter .memory-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+#memoryCenter .memory-actions button{flex:1;min-width:125px}
+#memoryCenter .memory-rating button{font-size:13px;padding:11px 9px}
+#memoryCenter .memory-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#memoryCenter .memory-stats .vocab-card{text-align:center;padding:12px 8px}
+#memoryCenter .memory-stats strong{font-size:23px;color:#2457c5}
+#memoryCenter .memory-muted{font-size:13px;color:#65738b;line-height:1.5}
+#memoryCenter button:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:480px){#memoryCenter .memory-stats{grid-template-columns:repeat(3,minmax(0,1fr))}#memoryCenter .memory-card{padding:19px 14px}}
+</style>
+<section class="panel" id="memoryCenter">
+ <h2 class="module-heading">🧠 Memoria inteligente</h2>
+ <p class="module-description">Tarjetas de recuerdo activo y repasos espaciados para ayudarte a conservar palabras y frases en la memoria.</p>
+ <div class="memory-stats" style="margin-top:14px">
+  <article class="vocab-card"><strong id="memoryDueCount">0</strong><div class="memory-muted">Para repasar hoy</div></article>
+  <article class="vocab-card"><strong id="memoryKnownCount">0</strong><div class="memory-muted">Dominadas</div></article>
+  <article class="vocab-card"><strong id="memoryTotalCount">0</strong><div class="memory-muted">En tu colección</div></article>
+ </div>
+ <div class="controls" style="margin-top:16px">
+  <label for="memoryLevelFilter">Nivel:</label>
+  <select id="memoryLevelFilter"><option value="all">Todos los niveles</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option></select>
+  <label for="memoryDirection">Practicar:</label>
+  <select id="memoryDirection"><option value="es-fr">Español → Francés</option><option value="fr-es">Francés → Español</option></select>
+ </div>
+ <div class="exercise-card" style="margin-top:14px">
+  <div class="practice-stats"><span id="memorySessionLabel">Sesión lista</span><span id="memorySessionScore">0 aciertos</span></div>
+  <div class="practice-track"><div id="memorySessionBar" style="height:100%;width:0;background:var(--blue);transition:width .2s"></div></div>
+  <div class="memory-card" aria-live="polite">
+   <div class="memory-muted" id="memoryCardHint">Intenta recordar la respuesta antes de revelarla.</div>
+   <div class="memory-front" id="memoryCardFront">Tu próxima tarjeta aparecerá aquí.</div>
+   <div class="memory-back" id="memoryCardBack" hidden></div>
+  </div>
+  <p class="memory-muted" id="memoryFeedback" aria-live="polite">Elige un nivel o practica todos. La aplicación seleccionará tarjetas nuevas y repasos vencidos.</p>
+  <div class="memory-actions">
+   <button type="button" id="memoryStart">▶ Comenzar sesión</button>
+   <button type="button" class="secondary" id="memoryReveal" disabled>Mostrar respuesta</button>
+   <button type="button" class="secondary" id="memoryNext" hidden>Siguiente tarjeta</button>
+  </div>
+  <div class="memory-actions memory-rating" id="memoryRatings" hidden>
+   <button type="button" class="stop" data-memory-rating="again">Otra vez</button>
+   <button type="button" class="secondary" data-memory-rating="hard">Difícil</button>
+   <button type="button" data-memory-rating="good">Bien</button>
+   <button type="button" style="background:#13795b" data-memory-rating="easy">Fácil</button>
+  </div>
+ </div>
+ <p class="memory-muted" style="margin-top:12px">La memoria inteligente guarda el avance en este navegador. Los repasos siguen intervalos progresivos; si una tarjeta cuesta, vuelve antes. El progreso no se sincroniza automáticamente entre dispositivos.</p>
+</section>
+<script>
+(function(){
+ 'use strict';
+ const KEY='aprendofrances_memory_v1',$=id=>document.getElementById(id);
+ const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return {}}};
+ const write=s=>{try{localStorage.setItem(KEY,JSON.stringify(s));return true}catch(e){return false}};
+ const clean=s=>String(s||'').toLocaleLowerCase('fr').normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/[’']/g,"'").replace(/[.!?¿¡,]/g,'').replace(/\\s+/g,' ').trim();
+ let deck=[],session=[],position=0,shown=false,correct=0,answered=0,current=null;
+ function collect(){
+  const all=[];
+  try{Object.entries(practiceSets).forEach(([module,arr])=>(arr||[]).forEach(x=>{if(x&&x.fr&&x.es)all.push({id:'A1|'+module+'|'+clean(x.fr),level:'A1',module,fr:x.fr,es:x.es})}))}catch(e){}
+  try{letters.filter(x=>x[0]!=='Ñ').forEach(x=>all.push({id:'A1|alphabet|'+clean(x[0]),level:'A1',module:'alphabet',fr:x[0],es:'Nombre de la letra: '+x[1]}))}catch(e){}
+  try{if(typeof window.getAprendoMemoryItems==='function')all.push(...window.getAprendoMemoryItems())}catch(e){}
+  const seen=new Set();return all.filter(x=>x&&x.fr&&x.es&&!seen.has(x.id)&&(seen.add(x.id),true));
+ }
+ function sync(){
+  const old=read(),items=collect();items.forEach(x=>{if(!old[x.id])old[x.id]={...x,reps:0,interval:0,ease:2.5,dueAt:0,known:false,lapses:0}});
+  old.cards=old.cards||{};items.forEach(x=>{if(old.cards[x.id])old[x.id]={...x,...old.cards[x.id],id:x.id,fr:x.fr,es:x.es,level:x.level,module:x.module}});
+  old.lastSync=new Date().toISOString();write(old);deck=items.map(x=>old[x.id]||x);
+  updateStats();
+ }
+ function updateStats(){
+  const now=Date.now(),filter=$('memoryLevelFilter')?.value||'all',cards=deck.filter(x=>filter==='all'||x.level===filter);
+  $('memoryDueCount').textContent=cards.filter(x=>(x.dueAt||0)<=now&&!x.known).length;
+  $('memoryKnownCount').textContent=cards.filter(x=>x.known).length;
+  $('memoryTotalCount').textContent=cards.length;
+ }
+ function saveCard(card){const s=read();s[card.id]={...card};write(s)}
+ function start(){
+  sync();const filter=$('memoryLevelFilter').value,now=Date.now();
+  const pool=deck.filter(x=>filter==='all'||x.level===filter);
+  const due=pool.filter(x=>!x.known&&(x.dueAt||0)<=now).sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));
+  const fresh=pool.filter(x=>!x.known&&!x.reps).sort(()=>Math.random()-.5);
+  const later=pool.filter(x=>!x.known&&x.reps&&(x.dueAt||0)>now).sort((a,b)=>a.dueAt-b.dueAt);
+  session=[...due,...fresh,...later].slice(0,10);
+  position=0;correct=0;answered=0;current=null;shown=false;
+  if(!session.length){$('memoryCardFront').textContent='¡Excelente! No hay tarjetas pendientes en este filtro.';$('memoryCardBack').hidden=true;$('memoryReveal').disabled=true;$('memoryRatings').hidden=true;$('memoryFeedback').textContent='Puedes cambiar de nivel o volver más tarde.';$('memorySessionLabel').textContent='Sesión completada';return}
+  $('memorySessionLabel').textContent='Tarjeta 1 de '+session.length;$('memorySessionScore').textContent='0 aciertos';render();
+ }
+ function render(){
+  current=session[position];shown=false;
+  const dir=$('memoryDirection').value;
+  $('memoryCardFront').textContent=dir==='es-fr'?current.es:current.fr;
+  $('memoryCardBack').textContent=dir==='es-fr'?current.fr:current.es;
+  $('memoryCardBack').hidden=true;$('memoryCardHint').textContent='Intenta recordar antes de revelar la respuesta.';
+  $('memoryReveal').hidden=false;$('memoryReveal').disabled=false;$('memoryNext').hidden=true;$('memoryRatings').hidden=true;
+  $('memorySessionLabel').textContent='Tarjeta '+(position+1)+' de '+session.length;
+  $('memorySessionScore').textContent=correct+' aciertos';$('memorySessionBar').style.width=(position/session.length*100)+'%';
+  $('memoryFeedback').textContent='Nivel '+current.level+' · '+(current.module||'vocabulario');
+ }
+ function reveal(){if(!current||shown)return;shown=true;$('memoryCardBack').hidden=false;$('memoryCardHint').textContent='Comprueba tu recuerdo y califica con honestidad.';$('memoryReveal').disabled=true;$('memoryRatings').hidden=false}
+ function rate(kind){
+  if(!current||!shown)return;
+  const now=Date.now();current.reps=(current.reps||0)+1;current.ease=Number(current.ease)||2.5;
+  if(kind==='again'){current.lapses=(current.lapses||0)+1;current.reps=0;current.interval=0;current.ease=Math.max(1.3,current.ease-.2);current.dueAt=now+10*60*1000;current.known=false}
+  else{
+   const factor=kind==='easy'?1.3:kind==='hard'?1.2:1;
+   const base=current.interval===0?1:current.interval===1?3:Math.round(current.interval*current.ease);
+   current.interval=Math.max(1,Math.round(base*factor));
+   if(kind==='hard')current.ease=Math.max(1.3,current.ease-.15);
+   if(kind==='easy')current.ease=Math.min(3.2,current.ease+.15);
+   current.dueAt=now+current.interval*86400000;
+   current.known=current.interval>=21;
+   correct++;
+  }
+  saveCard(current);answered++;$('memorySessionScore').textContent=correct+' aciertos';
+  $('memoryRatings').hidden=true;$('memoryReveal').hidden=true;
+  if(position<session.length-1){$('memoryNext').hidden=false;$('memoryFeedback').textContent=kind==='again'?'La volverás a ver pronto.':current.known?'¡Tarjeta dominada!':'Repaso programado en '+current.interval+' día(s).'}
+  else finish();
+  updateStats();
+ }
+ function finish(){
+  $('memorySessionBar').style.width='100%';$('memorySessionLabel').textContent='Sesión terminada';$('memoryNext').hidden=true;$('memoryReveal').hidden=true;
+  $('memoryFeedback').textContent='Terminaste '+answered+' tarjetas. Respuestas recordadas: '+correct+'. Tu planificación de repasos quedó guardada.';
+  $('memoryCardHint').textContent='¡Buen trabajo!';$('memoryCardFront').textContent='Sesión completada';$('memoryCardBack').hidden=true;
+ }
+ $('memoryStart').addEventListener('click',start);
+ $('memoryReveal').addEventListener('click',reveal);
+ $('memoryRatings').addEventListener('click',e=>{const b=e.target.closest('[data-memory-rating]');if(b)rate(b.dataset.memoryRating)});
+ $('memoryNext').addEventListener('click',()=>{if(position<session.length-1){position++;render()}});
+ $('memoryLevelFilter').addEventListener('change',()=>{sync();$('memorySessionLabel').textContent='Filtro actualizado';});
+ $('memoryDirection').addEventListener('change',()=>{if(current&&!shown)render()});
+ sync();
+})();
+</script>
 
 <script>
 (function(){
@@ -1236,9 +1375,10 @@ certs();renderModules();
  const tracking=makeView('appTracking','Seguimiento','Repasos programados, historial y examen acumulativo.');
  const practice=makeView('appPractice','Práctica interactiva','Ejercicios del módulo seleccionado.');
  const route=makeView('appRoute','Ruta A1–C2','Explora libremente todos los niveles y sus módulos.');
+ const memory=makeView('appMemory','Memoria inteligente','Tarjetas y repasos espaciados.');
  const nav=document.createElement('section');nav.id='appNavigation';nav.innerHTML=
   '<div class="nav-top"><span class="nav-brand">🇫🇷 Tu espacio de francés</span><span class="nav-current" id="navCurrent">Abecedario · Inicio</span></div>'+
-  '<div class="nav-selects"><div><label for="sectionPicker">¿Qué quieres estudiar?</label><select id="sectionPicker" aria-label="Seleccionar sección"><option value="alphabet">🔤 Abecedario</option><option value="classes">📚 Clases A1</option><option value="lab">🎓 Laboratorio de práctica</option><option value="practice">✍️ Práctica interactiva</option><option value="progress">📈 Mi progreso</option><option value="tracking">🗓️ Seguimiento e historial</option><option value="route">🏆 Ruta completa A1–C2</option></select></div>'+
+  '<div class="nav-selects"><div><label for="sectionPicker">¿Qué quieres estudiar?</label><select id="sectionPicker" aria-label="Seleccionar sección"><option value="alphabet">🔤 Abecedario</option><option value="classes">📚 Clases A1</option><option value="lab">🎓 Laboratorio de práctica</option><option value="practice">✍️ Práctica interactiva</option><option value="progress">📈 Mi progreso</option><option value="tracking">🗓️ Seguimiento e historial</option><option value="route">🏆 Ruta completa A1–C2</option><option value="memory">🧠 Memoria inteligente</option></select></div>'+
   '<div class="nav-sub" id="classPickerWrap"><label for="modulePicker">Elige una clase</label></div></div>';
  const children=[...main.children];
  const pickerPanel=children.find(x=>x.querySelector&&x.querySelector('#modulePicker'));
@@ -1246,6 +1386,7 @@ certs();renderModules();
  const alphabetView=byId('moduleAlphabet');
  if(!pickerPanel||!voicePanel||!alphabetView) return;
  const labPanel=byId('advancedPracticeLab'),progressPanel=byId('learningProgress'),trackingPanel=byId('learningDashboard'),practicePanel=byId('practicePanel'),routePanel=byId('fullCurriculum');
+ const memoryPanel=byId('memoryCenter');
  main.insertBefore(nav,main.firstChild);
  const pickerWrap=byId('classPickerWrap');
  const pickerControl=byId('modulePicker');
@@ -1265,12 +1406,13 @@ certs();renderModules();
  if(trackingPanel)tracking.appendChild(trackingPanel);
  if(practicePanel)practice.appendChild(practicePanel);
  if(routePanel)route.appendChild(routePanel);
- [alphabet,classes,lab,practice,progress,tracking,route].forEach(v=>main.appendChild(v));
+ if(memoryPanel)memory.appendChild(memoryPanel);
+ [alphabet,classes,lab,practice,progress,tracking,route,memory].forEach(v=>main.appendChild(v));
  const picker=byId('modulePicker');
  const sectionPicker=byId('sectionPicker');
  const classWrap=byId('classPickerWrap');
- const views={alphabet,classes,lab,practice,progress,tracking,route};
- const labels={alphabet:'Abecedario · Inicio',classes:'Clases · Contenido A1',lab:'Laboratorio · Herramientas',practice:'Práctica · Ejercicios',progress:'Mi progreso · Resultados',tracking:'Seguimiento · Repasos e historial',route:'Ruta completa · A1 a C2'};
+ const views={alphabet,classes,lab,practice,progress,tracking,route,memory};
+ const labels={alphabet:'Abecedario · Inicio',classes:'Clases · Contenido A1',lab:'Laboratorio · Herramientas',practice:'Práctica · Ejercicios',progress:'Mi progreso · Resultados',tracking:'Seguimiento · Repasos e historial',route:'Ruta completa · A1 a C2',memory:'Memoria inteligente · Tarjetas y repasos'};
  function showSection(key){
   if(!views[key])key='alphabet';
   Object.entries(views).forEach(([k,v])=>{v.hidden=k!==key});
