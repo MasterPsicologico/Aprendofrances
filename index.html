@@ -24,6 +24,11 @@ button:focus-visible,.tile:focus-visible{outline:3px solid #f4b942;outline-offse
 .tile .sound{font-size:13px;color:var(--green)}
 .tile .tap{font-size:11px;color:var(--muted);margin-top:8px}
 .tile.special{background:#fffaf0;border-color:#f1d99d}.tile.special .letter{color:#9a6500}
+.tile.is-speaking{position:relative;z-index:2;border:2px solid #e3ad28!important;background:linear-gradient(145deg,#fff9df,#fff0b5)!important;box-shadow:0 0 0 5px #f4c84b40,0 12px 30px #b7831b35!important;transform:scale(1.035);animation:speakingPulse .85s ease-in-out infinite alternate}
+.tile.is-speaking .letter{color:#9a6500!important}
+@keyframes speakingPulse{from{box-shadow:0 0 0 3px #f4c84b30,0 8px 22px #b7831b25}to{box-shadow:0 0 0 7px #f4c84b55,0 12px 30px #b7831b45}}
+@media(prefers-reduced-motion:reduce){.tile.is-speaking{animation:none;transform:none}}
+
 .detail{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.big{font-size:52px;font-weight:850;color:var(--blue);min-width:65px}
 .detail h2{margin:0 0 4px;font-size:21px}.detail p{margin:3px 0;color:var(--muted)}
 .note{font-size:14px;line-height:1.55;color:var(--muted)}
@@ -410,6 +415,15 @@ function getVoice(){
  return voices.find(v=>/^fr-FR$/i.test(v.lang))||voices.find(v=>/^fr-CA$/i.test(v.lang))||voices.find(v=>/^fr/i.test(v.lang))||null;
 }
 let audioMode='idle';
+function highlightLetter(letter,scroll){
+ const grid=$('alphabet');if(!grid)return;
+ grid.querySelectorAll('.tile.is-speaking').forEach(el=>el.classList.remove('is-speaking'));
+ const tile=[...grid.querySelectorAll('.tile')].find(el=>el.querySelector('.letter')?.textContent===letter);
+ if(tile){tile.classList.add('is-speaking');if(scroll)tile.scrollIntoView({behavior:'smooth',block:'center',inline:'nearest'})}
+}
+function clearLetterHighlight(){
+ const grid=$('alphabet');if(grid)grid.querySelectorAll('.tile.is-speaking').forEach(el=>el.classList.remove('is-speaking'));
+}
 function setPauseButton(paused){
  const b=$('pauseAudio');if(!b)return;
  b.textContent=paused?'▶ Reanudar':'⏸ Pausar';
@@ -422,9 +436,9 @@ function speak(text){
  const utter=new SpeechSynthesisUtterance(text);
  const voice=getVoice(); if(voice){utter.voice=voice;utter.lang=voice.lang}else{utter.lang='fr-FR'}
  utter.rate=Number($('rate').value);utter.pitch=1;
- utter.onstart=()=>{$('status').textContent='Reproduciendo con '+(voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo')+'.';setPauseButton(false)};
- utter.onend=()=>{if(audioMode==='single'){$('status').textContent='Reproducción terminada.';audioMode='idle';setPauseButton(false)}};
- utter.onerror=()=>{if(audioMode==='single'){$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.';audioMode='idle';setPauseButton(false)}};
+ utter.onstart=()=>{$('status').textContent='Reproduciendo con '+(voice?voice.name+' ('+voice.lang+')':'la voz francesa predeterminada del dispositivo')+'.';highlightLetter($('selectedLetter').textContent,true);setPauseButton(false)};
+ utter.onend=()=>{if(audioMode==='single'){$('status').textContent='Reproducción terminada.';audioMode='idle';clearLetterHighlight();setPauseButton(false)}};
+ utter.onerror=()=>{if(audioMode==='single'){$('status').textContent='No se pudo reproducir el audio. Comprueba la configuración de voz del dispositivo.';audioMode='idle';clearLetterHighlight();setPauseButton(false)}};
  speechSynthesis.speak(utter);
 }
 function selectLetter(item){
@@ -451,7 +465,7 @@ $('pauseAudio').addEventListener('click',()=>{
  if(speechSynthesis.paused){speechSynthesis.resume();setPauseButton(false);$('status').textContent='Reanudando audio…'}
  else if(speechSynthesis.speaking){speechSynthesis.pause();setPauseButton(true);$('status').textContent='Audio en pausa. Pulsa «Reanudar» para continuar.'}
 });
-$('stop').addEventListener('click',()=>{queueToken++;audioMode='idle';if('speechSynthesis'in window)speechSynthesis.cancel();setPauseButton(false);$('status').textContent='Audio detenido.'});
+$('stop').addEventListener('click',()=>{queueToken++;audioMode='idle';if('speechSynthesis'in window)speechSynthesis.cancel();clearLetterHighlight();setPauseButton(false);$('status').textContent='Audio detenido.'});
 $('playAll').addEventListener('click',async()=>{
  if($('modulePicker').value!=='alphabet')return;
  if(!('speechSynthesis'in window))return;
@@ -459,12 +473,16 @@ $('playAll').addEventListener('click',async()=>{
  $('status').textContent='Reproduciendo el alfabeto francés…';
  for(const item of letters.filter(x=>x[0]!=='Ñ')){
   if(token!==queueToken)return;
+  selectLetter(item);
   await new Promise(resolve=>{
    const u=new SpeechSynthesisUtterance(item[1]);if(v){u.voice=v;u.lang=v.lang}else u.lang='fr-FR';u.rate=rate;
-   u.onend=resolve;u.onerror=resolve;speechSynthesis.speak(u);
+   u.onstart=()=>{if(token===queueToken)highlightLetter(item[0],true)};
+   u.onend=()=>{if(token===queueToken)clearLetterHighlight();resolve()};
+   u.onerror=()=>{if(token===queueToken)clearLetterHighlight();resolve()};
+   speechSynthesis.speak(u);
   });
  }
- if(token===queueToken){audioMode='idle';setPauseButton(false);$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.'}
+ if(token===queueToken){audioMode='idle';clearLetterHighlight();setPauseButton(false);$('status').textContent='¡Alfabeto terminado! Selecciona cualquier letra para repetirla.'}
 });
 render();loadVoices();
 if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=loadVoices;
